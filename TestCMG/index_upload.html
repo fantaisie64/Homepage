@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<script src="js/Three58.js"></script>
+<script>
+
+    var camera, scene, renderer, geometry, material, mesh;
+
+    init();
+    animate();
+
+    function init() {
+
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+        camera.position.z = 500;
+        scene.add(camera);
+
+        // Step1: change
+        geometry = new THREE.CubeGeometry(100, 100, 100);
+
+        // Step2: delete
+        //material = new THREE.MeshNormalMaterial();
+        // Step2: add
+        material = new THREE.MeshPhongMaterial({color: 0xCC0000});
+
+        mesh = new THREE.Mesh(geometry, material);
+
+        scene.add(mesh);
+
+        // Step5: add
+        sphereMaterial = new THREE.MeshLambertMaterial({color: 0x0000CC});
+        sphere = new THREE.Mesh(new THREE.SphereGeometry(100, 16, 16), sphereMaterial);
+        sphere.position.set(100, -100, -100);
+        scene.add(sphere);
+
+        // Step4: add
+        sunLight = new THREE.DirectionalLight(0xFFFFFF);
+        sunLight.position.set (-400, 400, 400);
+        sunLight.intensity = 2;
+        scene.add(sunLight);
+
+        // Step3: delete
+        // renderer = new THREE.CanvasRenderer();
+        // Step3: add
+        renderer = new THREE.WebGLRenderer( {antialias:true} );
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // Step6: add
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        sphere.receiveShadow = true;
+        sphere.castShadow = true;
+        sunLight.castShadow = true;
+        renderer.shadowMapEnabled = true;
+
+        document.body.appendChild(renderer.domElement);
+
+    }
+
+    function animate() {
+
+        requestAnimationFrame(animate);
+        render();
+
+    }
+
+    function render() {
+
+
+        mesh.rotation.x += 0.01;
+        mesh.rotation.y += 0.02;
+
+        renderer.render(scene, camera);
+
+    }
+</script>
+</body>
+</html>

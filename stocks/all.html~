@@ -1,0 +1,91 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN"
+"http://www.w3.org/TR/html4/frameset.dtd">
+
+<META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">  
+<META HTTP-EQUIV="EXPIRES" CONTENT="0">  
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE"> 
+
+<html>
+	<head>
+	<style type="text/css"?>
+	h1{font-family: Trebuchet MS, Helvetica, Arial; text-align: center; color: #aaaa33;}
+	h3{font-family: Trebuchet MS, Helvetica, Arial; text-align: center;}
+	h4{font-family: Trebuchet MS, Helvetica, Arial;}
+	h5{font-family: Trebuchet MS, Helvetica, Arial; text-align: center; color: #888888;}
+	body {background-color: #ffffff;}
+	</style>
+	</head>
+<body>
+<blockquote>
+
+<font face="Trebuchet MS, Helvetica, Arial">
+
+	<h1>Taiwan Stock Market All Brokers</h1>
+	<table border="0">
+	<tbody>
+		<tr>
+		<br> 
+<p>&nbsp;&nbsp;&nbsp;&nbsp; In Figure 2, we used our software to replicate the visualization (Figure 1) of 3-level P-value to blue, green, and red (colormap as shown in bottom right corner of every figure) made by researchers at 
+the Academia Sinica. 
+The P-value shows the significance of the correlation among the brokers. The thresholds of P-value for three colors are:
+</p>
+		<p>&nbsp;&nbsp;&nbsp;&nbsp; I.   0.01 < p-value < 0.1, it shows the correlation between the two brokers is less significant (Blue).</p>
+		<p>&nbsp;&nbsp;&nbsp;&nbsp; II.  0.001 < p-value < 0.01, it shows the correlation between the two brokers is significant (Green).</p>
+		<p>&nbsp;&nbsp;&nbsp;&nbsp; III. p-value < 0.001, it shows the correlation between the two brokers is very significant (Red).</p>
+
+<p>&nbsp;&nbsp;&nbsp;&nbsp; In Figure 3, we applied the edge bundling to all the edges of association by grouping the brokers with similar capitals to show the paths succinctly. 
+The edges coming/going to the same group are bundled to have more spaces between edges from/to different groups in this large scale P-value visualization .
+The bundling strength is decreased from 1.00 to 0.95 to show the path groups and relative colors more clearly, which retain visual bundles while still <a href="edge_bundling.html">resolving bundling ambiguity</a> in Figure 4. 
+In Figure 5, we change the colormap from discrete normal blue, green red, to gradient milder blue/red gradient for better user interface of continuous P-values. 
+Since the majority of P-values are close to 0 and the amount of P-values also increase gradually to the direction of 0 (see the distribution of true P-value in <a href="distribution.html">Value Distribution</a> page), we adopt the absolute values of 2 based logarithm P-values (|log2(P-value)|) in Figure 6 for better (less tilted) distribution. </p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp; In this visualization tool, we also apply the grouping by: local/foreign brokers, start up dates. 
+Furthermore, in addition to original P-values, the P-values are further calculated in 3-level, 5-level (P-values of 0.1, 0.05, 0.01, 0.005, and 0.001), 2-based logarithm, and 10-based logarithm. Note the dataset on hand is from 01/2007 to 06/2007 instead of 01/2008 to 06/2008 the original visualization references. 
+Two outliers which have the P-value 0.110466538 and 0.116228702 respectively are eliminated due to low significances.</p>
+     <br>
+     </tr>
+     <tr>
+       <td>
+       <p><a href="all/fig1.png"><img align="top" src="all/fig1.png" hspace="10" vspace="10" width="500"></a></p>
+       <p><h3>Figure 1. Visualization Made by Researchers at Academia Sinica</h3></p>
+       <p><h5>No Grouping, 3-level (0.1, 0.01, 0.001) P-value, BGR colors</h5></p>
+       </td>
+       <td><p><div style="width=500px; height:320px;"><a href="all/all-v.png"><img align="top" src="all/all-v.png" hspace="10" vspace="10" width="500" style="z-index:1; position:absolute;">
+       </a><a href="all/all-c.png"><img align="top" src="all/all-c.png" hspace="450" vspace="240" width="50" style="z-index:2; position:absolute;"></a></div></p>
+       <p><h3>Figure 2. Replicated Visualization</h3></p>
+       <p><h5>No Grouping, 3-level (0.1, 0.01, 0.001) P-value, BGR colors</h5></p>
+       </td>
+      </tr>
+     <tr>
+       <td>
+       <p><div style="width=500px; height:320px;"><a href="all/all-cap-p_3-bgr-1-v.png"><img align="top" src="all/all-cap-p_3-bgr-1-v.png" hspace="10" vspace="10" width="500" style="z-index:1; position:absolute;"></a>
+       <a href="all/all-cap-p_3-bgr-1-c.png"><img align="top" src="all/all-cap-p_3-bgr-1-c.png" hspace="450" vspace="240" width="50" style="z-index:2; position:absolute;"></a></div></p>
+       <p><h3>Figure 3. Edge Bundled</h3></p>
+       <p><h5>Grouped by capital, 3-level (0.1, 0.01, 0.001) P-value, bundling strength 1.00, BGR colors</h5></p>
+       </td>
+       <td>
+       <p><div style="width=500px; height:320px;"><a href="all/all-cap-p_3-bgr-2-v.png"><img align="top" src="all/all-cap-p_3-bgr-2-v.png" hspace="10" vspace="10" width="500" style="z-index:1; position:absolute;"></a>
+       <a href="all/all-cap-p_3-bgr-2-c.png"><img align="top" src="all/all-cap-p_3-bgr-2-c.png" hspace="450" vspace="240" width="50" style="z-index:2; position:absolute;"></a></div></p>
+       <p><h3>Figure 4. Set the bundling strength to 0.95</h3></p>
+       <p><h5>Grouped by capital, 3-level (0.1, 0.01, 0.001) P-value, bundling strength 0.95, BGR colors</h5></p>
+       </td>
+     </tr>
+     <tr>
+       <td>
+       <p><div style="width=500px; height:320px;"><a href="all/all-cap-p_3-br-v.png"><img align="top" src="all/all-cap-p_3-br-v.png" hspace="10" vspace="10" width="500" style="z-index:1; position:absolute;"></a>
+       <a href="all/all-cap-p_3-br-c.png"><img align="top" src="all/all-cap-p_3-br-c.png" hspace="450" vspace="240" width="50" style="z-index:2; position:absolute;"></a></div></p>
+       <p><h3>Figure 5. Change BGR colors to milder Blue to Red</h3></p>
+       <p><h5>Grouped by capital, 3-level (0.1, 0.01, 0.001) P-value, BR colors</h5></p>
+       </td>
+       <td>
+       <p><div style="width=500px; height:320px;"><a href="all/all-cap-p_l2-br-1-v.png"><img align="top" src="all/all-cap-p_l2-br-1-v.png" hspace="10" vspace="10" width="500" style="z-index:1; position:absolute;"></a>
+       <a href="all/all-cap-p_l2-br-1-c.png"><img align="top" src="all/all-cap-p_l2-br-1-c.png" hspace="450" vspace="240" width="50" style="z-index:2; position:absolute;"></a></div></p>
+       <p><h3>Figure 6. Change to 2 based logarithm level P-value</h3></p>
+       <p><h5>Grouped by capital, absolute log 2 P-value, bundling strength 0.95, BR colors</h5></p>
+       </td>
+     </tr>
+   </tbody>
+</font>
+</blockquote>
+</body>
+</html>

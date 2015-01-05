@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Production Line Data</title>
+
+<style>
+
+.detailView_g path {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+#startButton {
+  margin-left: 100px;
+}
+
+#increaseButton {
+  margin-left: 100px;
+}
+
+</style>
+</head>
+<body>
+<form>
+  <font SIZE=3 face="Trebuchet MS, Helvetica, Arial" style="font-weight:bold">Production Line Data</font>
+<!--<label><input type="radio" name="mode" value="size"> Size</label>
+  <label><input type="radio" name="mode" value="count" checked> Count</label>-->
+  <button id="startButton" face="Trebuchet MS, Helvetica, Arial" type="button">Start</button>
+  <button id="stopButton" face="Trebuchet MS, Helvetica, Arial" type="button">Stop</button>
+  <button id="forBackButton" face="Trebuchet MS, Helvetica, Arial" type="button">Backward</button>
+  <!--<label>0</label>-->
+  <font face="Trebuchet MS, Helvetica, Arial">Jump to Timestamp: </font><input id="timeStampInput" type="number" value=0 min=0 max=0 onPaste="" onkeydown="return checkEnter(event);">
+  <font id="timeStampText" face="Trebuchet MS, Helvetica, Arial"> ( 0 -  ) </font>
+  <button id="increaseButton" face="Trebuchet MS, Helvetica, Arial" type="button">Increase</button>
+  <button id="decreaseButton" face="Trebuchet MS, Helvetica, Arial" type="button">Decrease</button>
+  <font id="PlaybackSpeedText" face="Trebuchet MS, Helvetica, Arial"> Playback Interval: 200</font>
+  <br/><font size="1.5" face="Trebuchet MS, Helvetica, Arial">Arc Length: Feature Weight</font>
+  <br/><font size="1.5" face="Trebuchet MS, Helvetica, Arial">Radius: Feature Value</font>
+</form>
+<script src="d3.v3.min.js"></script>
+<script>
+var h_margin = 0,
+    v_margin = 60;
+
+var width = window.innerWidth - 2* h_margin,
+	height = window.innerHeight - 2* v_margin,
+	radius = Math.min(width, height) / 2;
+
+var color = d3.scale.category20();
+
+var score_pie = d3.layout.pie()
+    .value(function(d) { return 1; })
+    .sort(null);
+
+var pie = d3.layout.pie()
+    .value(function(d) { return d.count; })
+    .sort(null);
+
+var root, weight;
+
+var arc = d3.svg.arc();
+    // .innerRadius(radius - 100)
+    // .outerRadius(radius - 20);
+
+var mainsvg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+var svg = mainsvg.append("g")
+    .attr("transform", "translate(" + 0 + "," + 0+ ")")
+    .style("pointer-events","all");
+
+var singleView_g = svg.append("g")
+    .attr("class", "singleView_g")
+    .attr("transform", "translate(" + 160 + "," + height / 2 + ")");
+
+var singleView_text, singleView_text_tspan1, singleView_text_tspan2, singleView_text_tspan3;
+
+var detailView_g = svg.append("g")
+    .attr("id", "detailView_g_id")
+    .attr("class", "detailView_g")
+    .attr("transform", "translate(" + 360 + "," + height / 8 + ")");
+
+var overView_g = svg.append("g")
+    .attr("class", "overView_g")
+    .attr("transform", "translate(" + 360 + "," + height * 2 / 5 + ")");
+
+// var helpView_g = svg.append("g")
+//     .attr("class", "helpView_g")
+//     .attr("transform", "translate(" + 0 + "," + height / 2 + ")");
+
+detailView_g.append("rect")
+                    .attr("x","0").attr("y","0")
+                    .attr("width",width-360).attr("height", height)
+                    .style("visibility","hidden");
+
+
+
+var timeStamp = 0;
+var selectedTimeStamp = 0;
+var timeToStop = 0;
+var timeOut = 200;
+var timeStampInput = document.getElementById('timeStampInput');
+d3.selectAll("#PlaybackSpeedText").text("Playback Interval: " + timeOut);
+
+var alphabets = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T"];
+
+var date, score, flag, singleValues;
+
+
+var detail_s_path = detailView_g.selectAll(".detail_s_path");
+var detail_sf_path = detailView_g.selectAll(".detail_sf_path");
+var detail_s_circle = detailView_g.selectAll(".detail_s_circle");
+var detail_sf_circle = detailView_g.selectAll(".detail_sf_circle");
+var detail_s_text = detailView_g.selectAll(".detail_s_text");
+var detail_sf_text = detailView_g.selectAll(".detail_sf_text");
+var scores, SelectedFeature;
+
+var score_path = singleView_g.selectAll(".score_path");
+var path = singleView_g.selectAll(".feature_path");
+
+//var timelineData = {timeStamp:timeStamp};
+var timeline = d3.svg.line()
+    .x( function(point) { return point.lx; })
+    .y( function(point) { return point.ly; });
+    function timelineFunc(d){
+    // i'm assuming here that supplied datum 
+    // is a link between 'source' and 'target'
+    var points = [
+        {lx: 360+(width-369)*timeStamp/(timeStampCount-1), ly: height/10},
+        {lx: 360+(width-369)*timeStamp/(timeStampCount-1), ly: height-40}
+    ];
+    return timeline(points);
+}
+function timelineFunc2(d){
+    // i'm assuming here that supplied datum 
+    // is a link between 'source' and 'target'
+    var points = [
+        {lx: 360+(width-369)*selectedTimeStamp/(timeStampCount-1), ly: height/10},
+        {lx: 360+(width-369)*selectedTimeStamp/(timeStampCount-1), ly: height-40}
+    ];
+    return timeline(points);
+}
+var timeline_path = overView_g.selectAll(".time_line_path");
+var timeline_path2 = overView_g.selectAll(".time_line_path2");
+var timeline_text = overView_g.selectAll(".time_line_text");
+var timeline_text2 = overView_g.selectAll(".time_line_text2");
+
+
+var running = false,
+    backward = false;
+
+// For Over view/feature stream
+var timeStampCount, timeStamps, x, y, z;
+
+var stack = d3.layout.stack().offset("wiggle");
+
+var selectedFeatureName = 2;
+
+
+d3.csv("v5.csv",function(original_root){
+d3.csv("weight.csv", function(original_weight){
+root = original_root;
+weight = original_weight;
+//console.log(root);
+//console.log(weight);
+timeStampCount = root.length;
+timeStampInput.max = timeStampCount;
+document.getElementById("timeStampText").innerHTML=" ( 0 - " + (timeStampCount-1) + " ) ";
+
+
+var rootT = new Array();
+var timeStamps = new Array();
+var tempWeight = [158, 147, 129, 126, 97, 95, 95, 90, 73, 73, 68, 54, 52, 49, 47, 38, 31, 31, 29, 27];
+scores = new Array();
+SelectedFeature = new Array();
+
+// for(var i=0; i<20; i++){
+//     // Transpose root
+//     rootT[i] = new Array();
+//     for(var j=0; j<root.length; j++){
+//       rootT[i][j] = new Object();
+//       rootT[i][j].x = j;
+//       rootT[i][j].y = parseFloat(weight[j][i]);
+//       rootT[i][j].color = parseFloat(root[j][i]);
+//     }
+//   }
+
+rootT = stack(d3.range(20).map(function(k) {
+  return root.map(function(d, i) {
+    return {x:i, y:parseFloat(weight[i][k]), color:parseFloat(d[k])};
+  });
+}));
+
+for(var i=0; i<root.length;i++){
+  scores[i] = {timeStamp:i, Score:root[i].Score};
+}
+
+for(var i=0; i<root.length;i++){
+  SelectedFeature[i] = {timeStamp:i, Score:root[i][2]*40};
+}
+
+// set title
+for(var i=0; i<rootT.length;i++){
+  rootT[i].region = alphabets[i];
+}
+
+//console.log(rootT);
+
+// var stack_y = Array.apply(null, new Array(timeStampCount)).map(Number.prototype.valueOf,0);
+// rootT = rootT.map(function(d){
+//   newrd = new Array();
+//   for(var i=0; i<d.length; i++){
+//       stack_y[i] += d[i].y;
+//       newrd[i] = {x:d[i].x, y:d[i].y, y0:stack_y[i]};
+//   } 
+//   return newrd;
+// });
+
+x = d3.scale.linear()
+    .domain([0, timeStampCount - 1])
+    .range([0, width-360]);
+
+y = d3.scale.linear()
+    .domain([0, d3.max(rootT, function(layer) { return d3.max(layer, function(d) { return d.y0 + d.y; }); })])
+    .range([height/2, 0]);
+
+var area = d3.svg.area()
+    .x(function(d) { return x(d.x); })
+    .y0(function(d) { return y(d.y0); })
+    .y1(function(d) { return y(d.y0 + d.y); });
+
+
+
+timeline_path = svg.append("path")
+    .attr("class", "time_line_path")
+    .attr("d", timelineFunc)
+    .attr("stroke", "black")
+    .attr("stroke-width", function(){
+      var stroke_width = (width-369)/(timeStampCount-1);
+      if (stroke_width > 4)
+        return (width-360)/(timeStampCount-1);
+      else
+        return "4";
+    })
+    .style("stroke-opacity", 0.2);
+
+timeline_path2 = svg.append("path")
+    .attr("class", ".time_line_path2")
+    .attr("d", timelineFunc2)
+    .attr("stroke", "black")
+    .attr("stroke-width", 0)
+    .style("stroke-dasharray", ("2, 4"))
+    .style("stroke-opacity", 0.2);
+
+timeline_text2 = detailView_g.append("text")
+    .attr("class", ".time_line_text2")
+    .attr("stroke", "black")
+    .style("opacity", 0.5)
+    .attr("x", selectedTimeStamp-15)
+    .attr("y", -40)
+    .text("");
+
+overView_g.append("g")
+      .append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -height/8)
+      .attr("y", -20)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Feature Weights");
+
+overView_g.selectAll("path")
+  .data(rootT)
+  .enter().append("path")
+  .attr("d", area)
+  .attr("id", function(d){return d.region;})
+  .style("fill", function(d, i) { return color(d.region); })
+  .each(function(d, i){
+    var path_width = d3.selectAll("#"+alphabets[0])[0][0].getPointAtLength(0).y
+        - d3.selectAll("#"+alphabets[1])[0][0].getPointAtLength(0).y;
+    overView_g.append("text")
+    .attr("font-size",path_width)
+    .attr("x", timeline_path[0][0].getAttribute("stroke-width"))
+    .attr("y", this.getPointAtLength(0).y + path_width*0.8)
+    .text(d.region);
+  })
+  .on("mouseover", function(d){
+    d3.selectAll("#" + d.region).style("stroke","yellow");
+    d3.selectAll("#" + d.region+"-feature").style("stroke","yellow");})
+  .on("mouseout", function(d){
+    d3.selectAll("#" + d.region).style("stroke","none");
+    d3.selectAll("#" + d.region+"-feature").style("stroke","none");})
+  .on("click", function(d,j){
+    console.log("selected:" + j);
+    selectedFeatureName = j;
+    for(var i=0; i<root.length;i++){
+    SelectedFeature[i].Score = Number(root[i][j])*40;
+    }
+    detail_sf_path.transition().duration(300).ease("linear").attr("d", line1).style("stroke", color(alphabets[j]));
+    d3.selectAll(".detail_sf_newText").transition().duration(300).ease("linear").style("fill", color(alphabets[j]))
+    .text("Feature:"+alphabets[j]);
+    detail_sf_circle.transition().duration(300).ease("linear").style("fill", color(alphabets[j]));
+    detail_sf_text.transition().duration(300).ease("linear").style("stroke", color(alphabets[j]));
+    singleView_text_tspan3.transition().duration(300).ease("linear").style("fill", color(alphabets[selectedFeatureName])).text("Feature "+alphabets[selectedFeatureName]+":"+root[timeStamp][selectedFeatureName]);
+  })
+  .append("title")
+  .text(function(d) { return d.region; });
+
+
+// Detail View
+var x1 = d3.time.scale()
+    .range([0, width-360]);
+
+var y1 = d3.scale.linear()
+    .range([height/4, 0]);
+
+var x1Axis = d3.svg.axis()
+    .scale(x1)
+    .orient("bottom");
+
+var y1Axis = d3.svg.axis()
+    .scale(y1)
+    .orient("left");
+
+// var area1 = d3.svg.area()
+//     .x(function(d) { return x1(d.timeStamp); })
+//     .y0(height)
+//     .y1(function(d) { return y1(d.Score); });
+
+var line1 = d3.svg.line()
+    .x(function(d) { return x1(d.timeStamp); })
+    .y(function(d) { return y1(Number(d.Score)); });
+
+x1.domain(d3.extent(scores, function(d) {  return d.timeStamp; }));
+y1.domain([0, d3.max(scores, function(d) {  return Number(d.Score); })]);
+
+// detailView_g.append("g")
+//       .attr("class", "x axis")
+//       .attr("transform", "translate(0," + height/4 + ")")
+//       .call(x1Axis);
+
+detailView_g.append("g")
+      .attr("class", "y axis")
+      .call(y1Axis)
+      .append("text")
+      //.attr("transform", "rotate(-90)")
+      .attr("x", -30)
+      .attr("y", 6)
+      .attr("dy", ".71em")
+      .style("text-anchor", "end")
+      .text("Score (%)");
+
+detailView_g.append("g")
+  .attr("class", "y axis")
+      .call(y1Axis)
+      .append("text")
+      .attr("class", "detail_sf_newText")
+      //.attr("transform", "rotate(-90)")
+      .attr("x", -30)
+      .attr("y", height/4-30)
+      .attr("dy", ".71em")
+      .style("fill", color(alphabets[2]))
+      .style("text-anchor", "end")
+      .text("Feature:"+"C");
+
+// var tempArray = new Array();
+// tempArray[0] = scores;
+// tempArray[1] = SelectedFeature;
+
+
+detail_s_path = detailView_g
+                    .append("path")
+                    .datum(scores)
+                    .attr("class", "detail_s_path")
+                    .style("stroke", "#505050")
+                    .attr("d", line1);
+
+detail_sf_path = detailView_g
+                    .append("path")
+                    .datum(SelectedFeature)
+                    .attr("class", "detail_sf_path")
+                    .style("stroke", color(alphabets[2]))
+                    .attr("d", line1);
+
+detail_s_circle = detailView_g.append("circle")
+  .attr("class", "detail_s_circle")
+  .style("fill", "#505050")
+  .style("stroke", "black")
+  .style("opacity", 0.3)
+  .attr("cx", selectedTimeStamp)
+  .attr("cy", 0)
+  .attr("r", 0);
+
+detail_sf_circle = detailView_g.append("circle")
+  .attr("class", "detail_sf_circle")
+  .style("fill", function(d) { return color(alphabets[2]); })
+  .style("stroke", "black")
+  .style("opacity", 0.3)
+  .attr("cx", selectedTimeStamp)
+  .attr("cy", height/4-SelectedFeature[timeStamp].Score)
+  .attr("r", 0);
+
+detail_s_text = detailView_g.append("text")
+  .attr("class", "detail_s_text")
+  .style("stroke", "#505050")
+  .style("opacity", 0.3)
+  .attr("x", selectedTimeStamp)
+  .attr("y", 0-20)
+  .text("");
+
+detail_sf_text = detailView_g.append("text")
+  .attr("class", "detail_sf_text")
+  .style("stroke", function(d) { return color(alphabets[2]); })
+  .style("opacity", 0.3)
+  .attr("x", selectedTimeStamp)
+  .attr("y", height/4-SelectedFeature[timeStamp].Score-20)
+  .text("");
+
+// detailView_g_canvas = document.getElementById('detailView_g_id');
+// detailView_g_canvas.onmousemove = mousePos;
+
+detailView_g.on("mouseenter", function(){
+  //console.log('mouseenter', d3.mouse(this));
+  var cx = d3.mouse(this)[0];
+  //var cy = d3.mouse(this)[1];
+  if(cx>=0){
+    detail_s_circle.transition().duration(300).ease("linear").attr("r", 5);
+    detail_sf_circle.transition().duration(300).ease("linear").attr("r", 5);
+    detail_s_text.transition().duration(300).ease("linear").text(scores[selectedTimeStamp].Score+"%");
+    detail_sf_text.transition().duration(300).ease("linear").text(SelectedFeature[selectedTimeStamp].Score/40);
+    timeline_path2.transition().duration(300).attr("stroke-width", 2);
+    timeline_text2.transition().duration(300).text(selectedTimeStamp);
+  }
+
+}).on("mousemove", function(){
+  //console.log('mousemove', d3.mouse(this));
+  var cx = d3.mouse(this)[0];
+  if(cx>=0){
+    selectedTimeStamp = Math.round(cx*(timeStampCount-1)/(width-369));
+    detail_s_circle.transition().duration(0).ease("linear").attr("cx", cx)
+        .attr("cy", height/4-(height/4)*scores[selectedTimeStamp].Score/100).attr("r", 5);
+    detail_sf_circle.transition().duration(0).ease("linear").attr("cx", cx)
+        .attr("cy", height/4-(height/4)*SelectedFeature[selectedTimeStamp].Score/100).attr("r", 5);
+    detail_s_text.transition().duration(0).ease("linear").attr("x", cx+10)
+        .attr("y", height/4-(height/4)*scores[selectedTimeStamp].Score/100-20).text(scores[selectedTimeStamp].Score+"%");
+    detail_sf_text.transition().duration(0).ease("linear").attr("x", cx+10)
+        .attr("y", height/4-(height/4)*SelectedFeature[selectedTimeStamp].Score/100-20).text(SelectedFeature[selectedTimeStamp].Score/40);
+    timeline_path2.transition()
+      .duration(0)
+      .ease("linear")
+      .attr("d", timelineFunc2)
+      .attr("stroke-width", 2);
+    timeline_text2.transition()
+    .duration(0)
+    .ease("linear")
+    .attr("x", cx-15)
+    .text(selectedTimeStamp);
+  }
+}).on("mouseout", function(){
+  //console.log('mouseexit', d3.mouse(this));
+  //var x = d3.mouse(this)[0];
+  detail_s_circle.transition().duration(300).attr("r", 0);
+  detail_sf_circle.transition().duration(300).attr("r", 0);
+  detail_s_text.transition().duration(300).text("");
+  detail_sf_text.transition().duration(300).text("");
+  timeline_path2.transition().duration(300).attr("stroke-width", 0);
+  timeline_text2.transition().duration(300).text("");
+}).on("click", function(){
+  var x = d3.mouse(this)[0];
+  timeStamp = selectedTimeStamp;
+  if(!running)
+    trans();
+});
+// Detail View
+
+// overView_text = overView_g.append("text")
+//   .attr("y", 269.2)
+//   .text("hello");
+
+// timeline = overView_g.append("line")
+//   .attr("class", "time_line")
+//   .attr("x1", width*timeStamp/(timeStampCount-1))
+//   .attr("y1", 0)
+//   .attr("x2", width*timeStamp/(timeStampCount-1))
+//   .attr("y2", height)
+//   .attr("stroke-width", 2)
+//   .attr("stroke", "black");
+
+singleView_text = singleView_g.append("text")
+.attr("text-anchor", "middle")
+.attr("y", "-1.8em")
+.attr("font-size",20)
+.attr("fill","#080808");
+singleView_text_tspan1 = singleView_text.append("tspan")
+.attr("x", 0)
+.attr("dy", "1.2em")
+.text("Timestamp:"+timeStamp);
+singleView_text_tspan2 = singleView_text.append("tspan")
+.attr("x", 0)
+.attr("dy", "1.2em")
+.style("fill", "#505050")
+.text("Score:"+root[timeStamp].Score+"\%");
+singleView_text_tspan3 = singleView_text.append("tspan")
+.attr("x", 0)
+.attr("dy", "1.2em")
+.style("fill", color(alphabets[selectedFeatureName]))
+.text("Feature "+alphabets[selectedFeatureName]+":"+root[timeStamp][selectedFeatureName]);
+
+d3.selectAll("#startButton").on("click", function change() {
+  if(!running){
+    running = true;
+    trans();
+  }
+  });
+
+d3.selectAll("#stopButton").on("click", function change() {
+  if(running){
+    running = false;
+  }
+  });
+
+d3.selectAll("#forBackButton").on("click", function change() {
+  if(backward){
+  backward = false;
+  d3.selectAll("#forBackButton").text("Backward");
+  }else{
+  backward = true;
+  d3.selectAll("#forBackButton").text("Forward");
+  }
+});
+
+d3.selectAll("#increaseButton").on("click", function change() {
+  if(timeOut > 20)
+    timeOut += 20;
+  d3.selectAll("#PlaybackSpeedText").text("Playback Interval: " + timeOut);
+});
+
+d3.selectAll("#decreaseButton").on("click", function change() {
+  if(timeOut < 2000)
+  timeOut -= 20;
+d3.selectAll("#PlaybackSpeedText").text("Playback Interval: " + timeOut);
+});
+
+// Help
+// helpView_g.append("div")
+//   .attr("text-anchor", "middle")
+//   .style("fill", "red")
+//   .style("font-weight", "bold")
+//   .style("font-size", 40)
+//   .attr("x", 180)
+//   .html("Playback Start/Stop↑ Forward/Backward↑" + <br/> + " Increase/Decrease↑");
+// Help
+
+trans();
+
+});});
+
+function mousePos(e) {
+    if (e.offsetX) {
+        mouseX = e.offsetX;
+        mouseY = e.offsetY;
+        //mouseX = 360+(width-360)*timeStamp/(timeStampCount-1)
+        selectedTimeStamp = Math.round((mouseX-360)*(timeStampCount-1)/(width-360));
+        detail_s_circle.transition().attr("cx", mouseX-360)
+        .attr("cy", height/4-(height/4)*scores[selectedTimeStamp].Score/100);
+        detail_sf_circle.transition().attr("cx", mouseX-360)
+        .attr("cy", height/4-(height/4)*SelectedFeature[selectedTimeStamp].Score/100);
+    }
+    // else if (e.layerX) {
+    //     mouseX = e.layerX;
+    //     mouseY = e.layerY;
+    // }
+}
+
+function checkEnter(event)
+{
+    if (event.keyCode == 13) 
+   {
+       if(timeStampInput.value >= 0 && timeStampInput.value<timeStampCount){
+          timeStamp = timeStampInput.value;
+          timeStampInput.value = 0;
+          if(!running)
+            trans();
+        }
+       return false;
+    }
+} 
+
+
+function trans(){
+	// d3.selectAll("label")
+	// .text(timeStamp.toString());
+
+	date = root[timeStamp].Date,
+  score = root[timeStamp].Score,
+  flag = root[timeStamp].flag;
+
+  score_obj = {strength:score};
+  score_array = new Array();
+  score_array[0] = score_obj;
+  //console.log(score_array);
+
+  singleValues = new Array();
+  for (var i=0;i<20;i++){
+  // var i = 2;
+  	singleValues[i] = {region:alphabets[i],strength:root[timeStamp][i], count:weight[timeStamp][i]};
+  }
+
+  // Over view
+  
+
+  // Single view
+  //console.log("values",values);
+  var data0 = path.data(),
+      data1 = pie(singleValues),
+      score_data = score_pie(score_array);
+
+  singleView_text_tspan1.text("Timestamp:"+timeStamp);
+  singleView_text_tspan2.text("Score:"+score+"\%");
+  singleView_text_tspan3.text("Feature "+alphabets[selectedFeatureName]+":"+root[timeStamp][selectedFeatureName]);
+
+  score_path = score_path.data(score_data);
+  path = path.data(data1);//, key);
+  //console.log("data1", data1);
+
+  //singleView_text.html("Timestamp:</br>"+timeStamp);
+
+  score_path.enter().append("path")
+  .each(function(d, i) { this._current = findNeighborArc(i, data0, data1, key) || d;})
+  .attr("class", "score_path")
+  .attr("fill", "#505050");
+
+  score_path.transition()
+  .duration(200)
+  .attrTween("d", scoreArcTween);
+
+  path.enter().append("path")
+  .each(function(d, i) { this._current = findNeighborArc(i, data0, data1, key) || d;})
+  .attr("class", "feature_path")
+  .attr("id", function(d){return d.data.region+"-feature";})
+  .attr("fill", function(d) { return color(d.data.region); })
+  .append("title")
+  .text(function(d) { return d.data.region; });
+
+  path.transition()
+        .duration(timeOut)
+        .attrTween("d", arcTween);
+
+  timeline_path.transition()
+      .duration(timeOut)
+      .ease("linear")
+      .attr("d", timelineFunc);
+	
+	if(backward)
+    if(timeStamp <= 0){
+        running = false;
+        d3.selectAll("#startStopButton").text("Start");
+        timeStamp = 0;
+      }
+      else{
+        timeStamp--;
+      }
+  else{
+    if(timeStamp == timeStampCount-1){
+      running = false;
+      d3.selectAll("#startStopButton").text("Start");
+      timeStamp = 0;
+    }else{
+      timeStamp++;
+    }
+  }
+  if(running)
+    setTimeout(function() { trans(root, weight); }, timeOut);
+}
+
+function key(d) {
+  return d.data.region;
+}
+
+function type(d) {
+  d.count = +d.count;
+  return d;
+}
+
+function findNeighborArc(i, data0, data1, key) {
+  var d;
+  return (d = findPreceding(i, data0, data1, key)) ? {startAngle: d.endAngle, endAngle: d.endAngle}
+      : (d = findFollowing(i, data0, data1, key)) ? {startAngle: d.startAngle, endAngle: d.startAngle}
+      : null;
+}
+
+// Find the element in data0 that joins the highest preceding element in data1.
+function findPreceding(i, data0, data1, key) {
+  var m = data0.length;
+  while (--i >= 0) {
+    var k = key(data1[i]);
+
+    for (var j = 0; j < m; ++j) {
+      if (key(data0[j]) === k) {
+        return data0[j];
+      }
+    }
+  }
+}
+
+// Find the element in data0 that joins the lowest following element in data1.
+function findFollowing(i, data0, data1, key) {
+  var n = data1.length, m = data0.length;
+  while (++i < n) {
+    var k = key(data1[i]);
+    for (var j = 0; j < m; ++j) {
+      if (key(data0[j]) === k) {
+        return data0[j];
+      }
+    }
+  }
+}
+
+function scoreArcTween(d) {
+  this._current.innerRadius = 100;
+  this._current.outerRadius = 100+0.5*this._current.data.strength;
+  d.innerRadius = 100;
+  d.outerRadius = 100+0.5*d.data.strength;
+  var i = d3.interpolate(this._current, d);
+  this._current = i(0);
+  return function(t) { return arc(i(t)); };
+}
+
+function arcTween(d) {
+	this._current.innerRadius = 100;
+	this._current.outerRadius = 100+50*this._current.data.strength;
+  d.innerRadius = 100;
+  d.outerRadius = 100+50*d.data.strength;
+  var i = d3.interpolate(this._current, d);
+  this._current = i(0);
+  return function(t) { return arc(i(t)); };
+}
+
+function bumpLayer(n) {
+  return 1;
+}
+
+
+d3.select(self.frameElement).style("height", height + "px");
+</script>
+</body>
+</html>

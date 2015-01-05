@@ -1,0 +1,2771 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>INTERIOR DESIGN</title>
+	<meta charset="utf-8">
+</head>
+<body>
+<script src="js/Three58.js"></script>
+<script src="js/Detector.js"></script>
+<script src="js/Stats.js"></script>
+<script src="js/OrbitControls.js"></script>
+<script src="js/THREEx.KeyboardState.js"></script>
+<script src="js/THREEx.FullScreen.js"></script>
+<script src="js/THREEx.WindowResize.js"></script>
+<script src="js/Coordinates.js"></script>
+<script src="js/ThreeCSG.js"></script>
+<div id="ThreeJS" style="z-index: 1; position: absolute; left:0px; top:0px"></div>
+<!--<h1 style="font-size:20px;z-index: 2; position: absolute; left:0px; top:20px"> Done by THREE.js</h1>-->
+<script>
+var container, scene, camera, renderer, controls, stats;
+var keyboard = new THREEx.KeyboardState();
+var clock = new THREE.Clock();
+
+var gridX = true;
+var gridY = false;
+var gridZ = false;
+var axes = true;
+var ground = true;
+
+// custom global variables
+var mesh;
+
+init();
+drawHelpers();
+animate();
+
+/*function createAreaEmitter( light ) {
+
+    var geometry = new THREE.CubeGeometry( 1, 1, 1 );
+    var material = new THREE.MeshBasicMaterial( { color: light.color.getHex(), vertexColors: THREE.FaceColors } );
+
+    var backColor = 0x222222;
+
+    geometry.faces[ 5 ].color.setHex( backColor );
+    geometry.faces[ 4 ].color.setHex( backColor );
+    geometry.faces[ 2 ].color.setHex( backColor );
+    geometry.faces[ 1 ].color.setHex( backColor );
+    geometry.faces[ 0 ].color.setHex( backColor );
+
+    var emitter = new THREE.Mesh( geometry, material );
+
+    emitter.position = light.position;
+    emitter.quaternion = light.quaternion;
+    emitter.scale.set( light.width * 2, 0.2, light.height * 2 );
+
+    return emitter;
+
+}*/
+
+// FUNCTIONS
+function init()
+{
+    // SCENE
+    scene = new THREE.Scene();
+    // CAMERA
+    var SCREEN_WIDTH = window.innerWidth, SCREEN_HEIGHT = window.innerHeight;
+    var VIEW_ANGLE = 45, ASPECT = SCREEN_WIDTH / SCREEN_HEIGHT, NEAR = 10, FAR = 10000;
+    camera = new THREE.PerspectiveCamera( VIEW_ANGLE, ASPECT, NEAR, FAR);
+    scene.add(camera);
+    camera.position.set(400,600,1800);
+    camera.lookAt(scene.position);
+
+    // RENDERER
+    if ( Detector.webgl )
+        renderer = new THREE.WebGLRenderer( {antialias:true} );
+    else
+        renderer = new THREE.CanvasRenderer();
+    renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+    renderer.shadowMapEnabled = true;
+    renderer.autoClear = false;
+    container = document.getElementById( 'ThreeJS' );
+    container.appendChild( renderer.domElement );
+    // EVENTS
+    THREEx.WindowResize(renderer, camera);
+    THREEx.FullScreen.bindKey({ charCode : 'm'.charCodeAt(0) });
+    // CONTROLS
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
+    // STATS
+    stats = new Stats();
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.bottom = '0px';
+    stats.domElement.style.zIndex = 100;
+    container.appendChild( stats.domElement );
+
+    // SKYBOX
+    var skyBoxGeometry = new THREE.CubeGeometry( 10000, 10000, 10000 );
+    var skyBoxMaterial = new THREE.MeshBasicMaterial( { color: 0xddddff, side: THREE.BackSide } );
+    var skyBox = new THREE.Mesh( skyBoxGeometry, skyBoxMaterial );
+    scene.add(skyBox);
+
+    // LIGHTS
+    var ambientLight = new THREE.AmbientLight( 0x999999 );
+    scene.add(ambientLight);
+
+    var sunlight = new THREE.DirectionalLight(0xffffee);
+    sunlight.position.set(-1000,3000,3000);
+    sunlight.intensity = 0.5;
+    sunlight.castShadow = true;
+    scene.add(sunlight);
+
+//    areaLight1 = new THREE.AreaLight( 0xffffff, 1000 );
+//    areaLight1.position.set( 50, 300, 200 );
+//    areaLight1.rotation.set( -0.74719, 0.0001, -90 * Math.PI / 180 );
+//    areaLight1.width = 200;
+//    areaLight1.height = 10;
+//    areaLight1.intensity = 20000;
+//    areaLight1.castShadow = true;
+
+    //scene.add( areaLight1 );
+
+    //var meshEmitter = createAreaEmitter( areaLight1 );
+    //scene.add( meshEmitter );
+
+
+    var light1 = new THREE.PointLight(0xffffdd);
+    light1.position.set(300,250,-90);
+    light1.intensity = 1;
+    //light1.castShadow = true;
+    scene.add(light1);
+
+    spotlight = new THREE.SpotLight( 0xFFFFdd, 1.0 );
+    spotlight.position.set( 250, 500, 50 );
+    spotlight.angle = 360 * Math.PI / 180;
+    spotlight.exponent = 2;
+    spotlight.target.position.set( 300,0,-50 );
+    spotlight.castShadow = true;
+    scene.add( spotlight );
+
+    var light2 = new THREE.PointLight(0xffffdd);
+    light2.position.set(80,300,-450);
+    light2.intensity = 0.4;
+    //light2.distance = 400;
+    //light2.castShadow = true;
+    scene.add(light2);
+
+    var light3 = new THREE.PointLight(0xffffdd);
+    light3.position.set(320,300,-450);
+    light3.intensity = 1;
+    //light3.distance = 400;
+    //light3.castShadow = true;
+    scene.add(light3);
+
+    var light4 = new THREE.PointLight(0xffffdd);
+    light4.position.set(-320,250,600);
+    light4.intensity = 0.8;
+    light4.distance = 500;
+    //light4.castShadow = true;
+    scene.add(light4);
+
+    var light5 = new THREE.PointLight(0xfff99);
+    light5.position.set(-320,350,200);
+    light5.intensity = 2;
+    light5.distance = 300;
+    //light5.castShadow = true;
+    scene.add(light5);
+
+    var light6 = new THREE.PointLight(0xffff99);
+    light6.position.set(-380,350,-150);
+    light6.intensity = 2;
+    light6.distance = 300;
+    //light6.castShadow = true;
+    scene.add(light6);
+
+    var light7 = new THREE.PointLight(0xffffdd);
+    light7.position.set(-320,250,-600);
+    light7.intensity = 0.6;
+    light7.distance = 500;
+    //light7.castShadow = true;
+    scene.add(light7);
+
+    var light8 = new THREE.PointLight(0xffffdd);
+    light8.position.set(-64,250,50);
+    light8.intensity = 1;
+    light8.distance = 300;
+    //light8.castShadow = true;
+    scene.add(light8);
+
+    var light9 = new THREE.PointLight(0xffffdd);
+    light9.position.set(-200,250,-310);
+    light9.intensity = 1;
+    light9.distance = 300;
+    //light9.castShadow = true;
+    scene.add(light9);
+
+    // light bulb
+
+//    var geometry = new THREE.SphereGeometry( 10, 32, 16 );
+//    var material = new THREE.MeshLambertMaterial( { color: 0xffffdd } );
+//    mesh = new THREE.Mesh( geometry, material );
+//    mesh.position.copy(light1.position);
+//    scene.add(mesh);
+
+    var geometry = new THREE.SphereGeometry( 10, 32, 16 );
+    var material = new THREE.MeshLambertMaterial( { color: 0xffffdd } );
+    mesh = new THREE.Mesh( geometry, material );
+    mesh.position.copy(light2.position);
+    scene.add(mesh);
+
+    var geometry = new THREE.SphereGeometry( 10, 32, 16 );
+    var material = new THREE.MeshLambertMaterial( { color: 0xffffdd } );
+    mesh = new THREE.Mesh( geometry, material );
+    mesh.position.copy(light3.position);
+    scene.add(mesh);
+
+    var geometry = new THREE.SphereGeometry( 10, 32, 16 );
+    var material = new THREE.MeshLambertMaterial( { color: 0xffffdd } );
+    mesh = new THREE.Mesh( geometry, material );
+    mesh.position.copy(light4.position);
+    scene.add(mesh);
+
+    var geometry = new THREE.SphereGeometry( 10, 32, 16 );
+    var material = new THREE.MeshLambertMaterial( { color: 0xffff99 } );
+    mesh = new THREE.Mesh( geometry, material );
+    mesh.position.copy(light5.position);
+    scene.add(mesh);
+
+    var geometry = new THREE.SphereGeometry( 10, 32, 16 );
+    var material = new THREE.MeshLambertMaterial( { color: 0xffff99 } );
+    mesh = new THREE.Mesh( geometry, material );
+    mesh.position.copy(light6.position);
+    scene.add(mesh);
+
+    var geometry = new THREE.SphereGeometry( 10, 32, 16 );
+    var material = new THREE.MeshLambertMaterial( { color: 0xffffdd } );
+    mesh = new THREE.Mesh( geometry, material );
+    mesh.position.copy(light7.position);
+    scene.add(mesh);
+
+    var geometry = new THREE.SphereGeometry( 10, 32, 16 );
+    var material = new THREE.MeshLambertMaterial( { color: 0xffffdd } );
+    mesh = new THREE.Mesh( geometry, material );
+    mesh.position.copy(light8.position);
+    scene.add(mesh);
+
+    var geometry = new THREE.SphereGeometry( 10, 32, 16 );
+    var material = new THREE.MeshLambertMaterial( { color: 0xffffdd } );
+    mesh = new THREE.Mesh( geometry, material );
+    mesh.position.copy(light9.position);
+    scene.add(mesh);
+
+
+    var whiteMaterial = new THREE.MeshPhongMaterial( );
+    whiteMaterial.color.r = 230/255;
+    whiteMaterial.color.g = 255/255;
+    whiteMaterial.color.b = 220/255;
+
+    var blackMaterial = new THREE.MeshBasicMaterial( { color: 0x202020 } );
+//    blackMaterial.color.r = 0;
+//    blackMaterial.color.g = 0;
+//    blackMaterial.color.b = 0;
+
+    var lightGrayMaterial = new THREE.MeshPhongMaterial( );
+    lightGrayMaterial.color.r = 100/255;
+    lightGrayMaterial.color.g = 100/255;
+    lightGrayMaterial.color.b = 100/255;
+
+    var darkGrayMaterial = new THREE.MeshPhongMaterial( );
+    darkGrayMaterial.color.r = 30/255;
+    darkGrayMaterial.color.g = 30/255;
+    darkGrayMaterial.color.b = 30/255;
+
+    var grayMaterial = new THREE.MeshPhongMaterial( );
+    grayMaterial.color.r = 10/255;
+    grayMaterial.color.g = 10/255;
+    grayMaterial.color.b = 10/255;
+
+    var woodMaterial = new THREE.MeshPhongMaterial({ color: 0x642100 });
+
+    var purpleMaterial = new THREE.MeshPhongMaterial( { color: 0x613030 } );
+    purpleMaterial.color.r = 60/255;
+    purpleMaterial.color.g = 60/255;
+    purpleMaterial.color.b = 60/255;
+
+    var tableMaterial = new THREE.MeshPhongMaterial({ color: 0x040202, specular: 0x331515, shininess: 20 });
+
+    var chairMaterial = new THREE.MeshPhongMaterial({ color: 0x402015 });
+
+    var darkBlueMaterial = new THREE.MeshPhongMaterial( {color:0x040410} );
+
+    var shineWhiteMaterial = new THREE.MeshPhongMaterial( { color: 0xDDDDDD, specular: 0xFFFFFF, shininess: 100 } );
+
+    var shineBlackMaterial = new THREE.MeshPhongMaterial( { color: 0x0, specular: 0xFFFFFF, shininess: 100 } );
+
+    var glassMaterial = new THREE.MeshPhongMaterial( { ambient: 0xbbbbbb, color: 0x0, specular: 0xFFFFFF, shininess: 1000, opacity: 0.2, transparent: true } );
+    var vaseMaterial = new THREE.MeshPhongMaterial( { ambient: 0xDDDDDD, color:0xCCCCCC, specular: 0xFFFFFF, shininess: 1000, opacity: 0.3, transparent: true, side: THREE.DoubleSide } );
+    var vaseGreenMaterial = new THREE.LineBasicMaterial( {color:0x017515, linewidth: 4 } );
+    var vaseGreen2Material = new THREE.LineBasicMaterial( {color:0x017515, linewidth: 2 } );
+    var vaseDarkGreenMaterial = new THREE.MeshBasicMaterial( {color:0x006015 } );
+    var vaseLightGreenMaterial = new THREE.MeshBasicMaterial( {color:0x02C874 } );
+    var vaseFlowerMaterial = new THREE.MeshPhongMaterial( {color:0xFFFAFA, side: THREE.DoubleSide } );
+
+
+    var chandelierGlassMaterial = new THREE.MeshBasicMaterial( { color: 0x999999, specular: 0xFFFFFF, shininess: 1000, opacity: 0.3, transparent: true } );
+    var chandelierWireframeMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFFFF, wireframe: true, shininess: 100, opacity: 0.6, transparent: true } );
+    var multiMaterial = [ chandelierGlassMaterial, chandelierWireframeMaterial ];
+
+    var candleGlassMaterial = new THREE.MeshBasicMaterial( { color: 0xCCCC88, specular: 0xFFFF77, shininess: 1000, opacity: 0.4, transparent: true } );
+    var candleWireframeMaterial = new THREE.MeshBasicMaterial( { color: 0xFFFF77, wireframe: true, shininess: 100, opacity: 0.8, transparent: true } );
+    var candleMultiMaterial = [ candleGlassMaterial, candleWireframeMaterial ];
+
+    var ironMaterial = new THREE.MeshPhongMaterial( { color: 0x999999, specular: 0xFFFFFF, shininess: 1000 } );
+    var ironGrayMaterial = new THREE.MeshPhongMaterial( { color: 0x303030, specular: 0xFFFFFF, shininess: 1000 } );
+
+    var doorHandleMaterial = new THREE.MeshPhongMaterial( { color: 0x630606, specular: 0x830808, shininess: 100, side: THREE.DoubleSide } );
+
+    var tubMaterial = new THREE.MeshPhongMaterial( {color:0xFAFFF0, side: THREE.DoubleSide } );
+
+    // FLOOR
+    var floorTexture = new THREE.ImageUtils.loadTexture( 'images/checkerboard.jpg' );
+    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set( 10, 10 );
+    var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+    var floorGeometry = new THREE.PlaneGeometry(1800, 1800, 10, 10);
+    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.position.y = -0.5;
+    floor.rotation.x = Math.PI / 2;
+    scene.add(floor);
+
+    // left part of house
+
+    // kitchen floor
+    var floorTexture = new THREE.ImageUtils.loadTexture( 'images/kitchen_floor.jpg' );
+    //floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    //floorTexture.repeat.set( 10, 10 );
+    var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+    var floorGeometry = new THREE.PlaneGeometry(500, 360, 10, 10);
+    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.position.x = 250;
+    floor.position.y = 5;
+    floor.position.z = -430;
+    floor.rotation.x = Math.PI / 2;
+    scene.add(floor);
+
+    // livingroom floor
+    var floorTexture = new THREE.ImageUtils.loadTexture( 'images/livingroom_floor.jpg' );
+    //floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    //floorTexture.repeat.set( 10, 10 );
+    var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+    var floorGeometry = new THREE.PlaneGeometry(500, 900, 10, 10);
+    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.position.x = 250;
+    floor.position.y = 5;
+    floor.position.z = 200;
+    floor.rotation.x = Math.PI / 2;
+    scene.add(floor);
+
+    // patio floor
+    //materials = new THREE.MeshLambertMaterial( { color: 0xFFFFFF } );
+    var floorGeometry = new THREE.PlaneGeometry(500, 240, 1, 1);
+    var floor = new THREE.Mesh(
+            floorGeometry, new THREE.MeshBasicMaterial({color: 0xFFFFFF}) );
+    floor.position.x = 250;
+    floor.position.y = 5;
+    floor.position.z = 770;
+    //floor.rotation.z = Math.PI / 2;
+    floor.rotation.x = - Math.PI / 2;
+    //setShadow(floor);
+    scene.add(floor);
+
+    var sphere, cylinder, cube, shape;
+
+    // carpet
+    var floorTexture = new THREE.ImageUtils.loadTexture( 'images/carpet1_2.jpg' );
+    floorTexture.wrapS = floorTexture.wrapT = THREE.MirroredRepeatWrapping;
+    floorTexture.repeat.set( 25, 100);
+    var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+    floorMaterial.overdraw = true;
+    var floorGeometry = new THREE.PlaneGeometry(500, 1640, 10, 10);
+    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.position.x = -250;
+    floor.position.y = 5;
+    floor.position.z = 30;
+    floor.rotation.x = Math.PI / 2;
+    scene.add(floor);
+
+    // bathroom floor 1
+    var floorTexture = new THREE.ImageUtils.loadTexture( 'images/bathroom_tile2.jpg' );
+    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set( 6, 18 );
+    var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+    floorMaterial.overdraw = true;
+    var floorGeometry = new THREE.PlaneGeometry(220, 660, 10, 10);
+    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.position.x = -390;
+    floor.position.y = 10;
+    floor.position.z = -36;
+    floor.rotation.x = Math.PI / 2;
+    scene.add(floor);
+
+    // bathroom floor 2 (toilet)
+    var floorTexture = new THREE.ImageUtils.loadTexture( 'images/bathroom_tile2.jpg' );
+    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set( 2, 3 );
+    var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+    floorMaterial.overdraw = true;
+    var floorGeometry = new THREE.PlaneGeometry(74, 111, 10, 10);
+    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.position.x = -244;
+    floor.position.y = 10;
+    floor.position.z = -54;
+    floor.rotation.x = Math.PI / 2;
+    scene.add(floor);
+
+    // bathroom floor 3
+    var floorTexture = new THREE.ImageUtils.loadTexture( 'images/bathroom_tile2.jpg' );
+    floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+    floorTexture.repeat.set( 4, 5 );
+    var floorMaterial = new THREE.MeshBasicMaterial( { map: floorTexture, side: THREE.DoubleSide } );
+    floorMaterial.overdraw = true;
+    var floorGeometry = new THREE.PlaneGeometry(148, 184, 10, 10);
+    var floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.position.x = -208;
+    floor.position.y = 10;
+    floor.position.z = 202;
+    floor.rotation.x = Math.PI / 2;
+    scene.add(floor);
+
+
+
+    // central wall
+    // storage wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 50, 100, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 275;
+    cube.position.z = -740;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // storage door
+    doorGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 200, 80, 1, 1, 1 ), lightGrayMaterial );
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    // storage door handle
+    doorHandleGroup = new THREE.Object3D();
+    var points = [];
+
+    for ( var i = 0; i < 32; i ++ ) {
+
+        points.push( new THREE.Vector3( Math.cos( i * 0.2 ) * Math.cos( i * 0.1 ) * 0.9 + 3, 0, ( i - 5 ) * 0.2 ) );
+
+    }
+
+    var handle = new THREE.Mesh( new THREE.LatheGeometry( points, 20 ), doorHandleMaterial );
+    handle.rotation.y = 90 * Math.PI/180;
+    handle.position.set(-2,0,0);
+    setShadow(handle);
+    doorHandleGroup.add( handle );
+
+    var handleSphere = new THREE.Mesh( new THREE.SphereGeometry( 3, 16, 8 ), doorHandleMaterial );
+    handleSphere.position.set(2,0,0);
+    setShadow(handleSphere);
+    doorHandleGroup.add( handleSphere );
+
+    doorHandleGroup2 = doorHandleGroup.clone();
+    doorHandleGroup2.position.x = 6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = 25;
+
+    doorGroup.add( doorHandleGroup2 );
+    doorGroup.rotation.y = 15 * Math.PI /180;
+    doorGroup.position.x = 10;
+    doorGroup.position.y = 150;
+    doorGroup.position.z = -760;
+
+    scene.add(doorGroup);
+
+    // storage wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 50, 100, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 25;
+    cube.position.z = -740;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // central wall 1
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 300, 470, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 150;
+    cube.position.z = -480;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // central wall 2 (beyond central hole)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 40, 140, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 280;
+    cube.position.z = -180;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // central wall 3
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 300, 810, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 150;
+    cube.position.z = 295;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // central wall lighting
+//    cube = new THREE.Mesh(
+//            new THREE.CubeGeometry( 20, 60, 880, 1, 1, 1 ), whiteMaterial );
+//    cube.position.x = 15;	// centered on origin along X
+//    cube.position.y = 330;
+//    cube.position.z = 200;	// negative offset 77 + half of depth 6/2
+//    setShadow(cube);
+//    scene.add( cube );
+//
+//    var cubeGeom = new THREE.CubeGeometry(4, 60, 880, 1, 1, 1);
+//    mirrorCubeCamera = new THREE.CubeCamera( 1, 500, 256 );
+//    // mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+//    scene.add( mirrorCubeCamera );
+//    var mirrorCubeMaterial = new THREE.MeshBasicMaterial( { envMap: mirrorCubeCamera.renderTarget } );
+//    mirrorCube = new THREE.Mesh( cubeGeom, mirrorCubeMaterial );
+//    mirrorCube.position.set(27,330,200);
+//    mirrorCubeCamera.position = mirrorCube.position;
+//    scene.add(mirrorCube);
+
+
+    // central wall 4
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 50, 150, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 275;
+    cube.position.z = 775;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // master bedroom window on patio
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 150, 150, 1, 1, 1 ), glassMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 175;
+    cube.position.z = 775;	// negative offset 77 + half of depth 6/2
+    //cube.castShadow = true;
+    //cube.receiveShadow = true;
+    scene.add( cube );
+
+    // central wall 5
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 100, 150, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 50;
+    cube.position.z = 775;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // patio
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 120, 50, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 60;
+    cube.position.z = 875;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 490, 120, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 245;	// centered on origin along X
+    cube.position.y = 60;
+    cube.position.z = 895;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 120, 50, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 495;	// centered on origin along X
+    cube.position.y = 60;
+    cube.position.z = 875;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // patio wall
+    // patio wall 1
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 20, 340, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 10;	// centered on origin along X
+    cube.position.y = 170;
+    cube.position.z = 650;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // patio wall 2
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 250, 100, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 145;	// centered on origin along X
+    cube.position.y = 290;
+    cube.position.z = 650;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // patio window
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 250, 240, 5, 1, 1, 1 ), glassMaterial );
+    cube.position.x = 145;	// centered on origin along X
+    cube.position.y = 120;
+    cube.position.z = 650;	// negative offset 77 + half of depth 6/2
+    //cube.castShadow = true;
+    //cube.receiveShadow = true;
+    scene.add( cube );
+
+    // patio wall 3
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 230, 340, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 385;	// centered on origin along X
+    cube.position.y = 170;
+    cube.position.z = 650;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // patio roof
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 15, 30, 200, 1, 1, 1 ), woodMaterial );
+    cube.rotation.x = 15 * Math.PI / 180.0;
+    cube.position.x = 80;	// centered on origin along X
+    cube.position.y = 310;
+    cube.position.z = 750;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 15, 30, 200, 1, 1, 1 ), woodMaterial );
+    cube.rotation.x = 15 * Math.PI / 180.0;
+    cube.position.x = 160;	// centered on origin along X
+    cube.position.y = 310;
+    cube.position.z = 750;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 15, 30, 200, 1, 1, 1 ), woodMaterial );
+    cube.rotation.x = 15 * Math.PI / 180.0;
+    cube.position.x = 240;	// centered on origin along X
+    cube.position.y = 310;
+    cube.position.z = 750;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 15, 30, 200, 1, 1, 1 ), woodMaterial );
+    cube.rotation.x = 15 * Math.PI / 180.0;
+    cube.position.x = 320;	// centered on origin along X
+    cube.position.y = 310;
+    cube.position.z = 750;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 15, 30, 200, 1, 1, 1 ), woodMaterial );
+    cube.rotation.x = 15 * Math.PI / 180.0;
+    cube.position.x = 400;	// centered on origin along X
+    cube.position.y = 310;
+    cube.position.z = 750;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+
+    // left wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 300, 1500, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 495;	// centered on origin along X
+    cube.position.y = 150;
+    cube.position.z = 100;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // fireplace
+    // fireplace wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 220, 340, 10, 1, 1, 1 ), grayMaterial );
+    cube.rotation.y = 45 * Math.PI / 180.0;
+    cube.position.x = 415;	// centered on origin along X
+    cube.position.y = 170;
+    cube.position.z = 570;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // fireplace
+    fireplaceGroup = new THREE.Object3D();
+
+    // fireplace middle
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 100, 80, 5, 1, 1, 1 ), blackMaterial );
+    cube.position.y = 40;
+    cube.position.z = -5;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace stone
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 140, 100, 5, 1, 1, 1 ), darkGrayMaterial );
+    cube.position.y = 50;
+    cube.position.z = 0;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace frame 1
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 100, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -75;
+    cube.position.y = 50;
+    cube.position.z = -5;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace frame 1
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 100, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 75;
+    cube.position.y = 50;
+    cube.position.z = -5;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace frame 1
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 160, 10, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;
+    cube.position.y = 105;
+    cube.position.z = -5;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace frame 2
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 120, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -85;
+    cube.position.y = 60;
+    cube.position.z = -10;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace frame 2
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 110, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 85;
+    cube.position.y = 60;
+    cube.position.z = -10;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace frame 2
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 180, 10, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;
+    cube.position.y = 115;
+    cube.position.z = -10;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace frame 3
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 190, 10, 20, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;
+    cube.position.y = 125;
+    cube.position.z = -10;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace floor
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 210, 4, 40, 1, 1, 1 ), shineWhiteMaterial );
+    cube.position.x = 0;
+    cube.position.y = 7;
+    cube.position.z = -20;
+    setShadow(cube);
+    fireplaceGroup.add(cube);
+
+    // fireplace mirror
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 98, 128, 4, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 230;
+    cube.position.z = -3;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    fireplaceGroup.add( cube );
+
+    var cubeGeom = new THREE.CubeGeometry(90, 120, 2, 1, 1, 1);
+    mirrorCubeCamera = new THREE.CubeCamera( 1, 500, 256 );
+    // mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+    scene.add( mirrorCubeCamera );
+    var mirrorCubeMaterial = new THREE.MeshBasicMaterial( { envMap: mirrorCubeCamera.renderTarget } );
+    mirrorCube = new THREE.Mesh( cubeGeom, mirrorCubeMaterial );
+    mirrorCube.position.set(0,230,-4);
+    mirrorCubeCamera.position = mirrorCube.position;
+    fireplaceGroup.add(mirrorCube);
+
+    fireplaceGroup.rotation.y = 45 * Math.PI / 180.0;
+    fireplaceGroup.position.x = 410;	// centered on origin along X
+    fireplaceGroup.position.y = 0;
+    fireplaceGroup.position.z = 565;	// negative offset 77 + half of depth 6/2
+    setShadow(fireplaceGroup);
+    scene.add( fireplaceGroup );
+
+    // back wall
+    //back wall 1
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 80, 310, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 460;	// centered on origin along X
+    cube.position.y = 155;
+    cube.position.z = -650;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // back wall 2
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 180, 70, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 330;	// centered on origin along X
+    cube.position.y = 275;
+    cube.position.z = -650;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // back(kitchen) window
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 180, 120, 10, 1, 1, 1 ), glassMaterial );
+    cube.position.x = 330;	// centered on origin along X
+    cube.position.y = 180;
+    cube.position.z = -650;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // back wall 3
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 180, 120, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 330;	// centered on origin along X
+    cube.position.y = 60;
+    cube.position.z = -650;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    //back wall 4
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 80, 310, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 200;	// centered on origin along X
+    cube.position.y = 155;
+    cube.position.z = -650;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    //back wall 5
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 310, 110, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 160;	// centered on origin along X
+    cube.position.y = 155;
+    cube.position.z = -600;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    //back wall 6 (above main door)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 160, 90, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 80;	// centered on origin along X
+    cube.position.y = 285;
+    cube.position.z = -570;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    //back wall 7 (side of main door)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 240, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 150;	// centered on origin along X
+    cube.position.y = 120;
+    cube.position.z = -570;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    //back wall 8 (side of main door)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 240, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 10;	// centered on origin along X
+    cube.position.y = 120;
+    cube.position.z = -570;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // main door 1
+    doorGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 140, 20, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 230;
+    cube.position.z = 0;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 100, 4, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 140;
+    cube.position.z = 0;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 140, 60, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 30;
+    cube.position.z = 0;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 20, 160, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 60;	// centered on origin along X
+    cube.position.y = 140;
+    cube.position.z = 0;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 20, 160, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -60;	// centered on origin along X
+    cube.position.y = 140;
+    cube.position.z = 0;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    // main door 1 handle
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 4, 10, 4, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 60;	// centered on origin along X
+    cube.position.y = 120;
+    cube.position.z = -4.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 14, 4, 2, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 55;	// centered on origin along X
+    cube.position.y = 120;
+    cube.position.z = -5.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    doorGroup.position.x = 80;
+    doorGroup.position.y = 0;
+    doorGroup.position.z = -580;
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 4, 10, 4, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 60;	// centered on origin along X
+    cube.position.y = 120;
+    cube.position.z = 4.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 4, 4, 2, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 60;	// centered on origin along X
+    cube.position.y = 123;
+    cube.position.z = 5.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    doorGroup.rotation.y = 90 * Math.PI /180;
+    doorGroup.position.x = 20;
+    doorGroup.position.y = 0;
+    doorGroup.position.z = -645;
+
+    scene.add(doorGroup);
+
+
+    // main door 2
+    doorGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 140, 240, 4, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 120;
+    cube.position.z = 0;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    doorGroup.rotation.y = -90 * Math.PI /180;
+    doorGroup.position.x = 20;
+    doorGroup.position.y = 0;
+    doorGroup.position.z = -495;
+    scene.add(doorGroup);
+
+
+
+    // kitchen wall
+    // kitchen wall 1
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 220, 160, 5, 1, 1, 1 ), purpleMaterial );
+    cube.position.x = 380;	// centered on origin along X
+    cube.position.y = 340;
+    cube.position.z = -247.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);;
+    scene.add( cube );
+
+    // kitchen wall 2
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 220, 100, 5, 1, 1, 1 ), purpleMaterial );
+    cube.position.x = 380;	// centered on origin along X
+    cube.position.y = 50;
+    cube.position.z = -247.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // kitchen wall 3
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 140, 420, 5, 1, 1, 1 ), purpleMaterial );
+    cube.position.x = 230;	// centered on origin along X
+    cube.position.y = 210;
+    cube.position.z = -247.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // kitchen wall 4
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 160, 160, 5, 1, 1, 1 ), purpleMaterial );
+    cube.position.x = 80;	// centered on origin along X
+    cube.position.y = 340;
+    cube.position.z = -247.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // kitchen wall 5
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 300, 130, 1, 1, 1 ), purpleMaterial );
+    cube.position.x = 157.5;	// centered on origin along X
+    cube.position.y = 150;
+    cube.position.z = -310;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // kitchen wall 2
+    // kitchen wall 1
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 220, 160, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 380;	// centered on origin along X
+    cube.position.y = 340;
+    cube.position.z = -252.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);;
+    scene.add( cube );
+
+    // kitchen wall 2
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 220, 100, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 380;	// centered on origin along X
+    cube.position.y = 50;
+    cube.position.z = -252.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // kitchen wall 3
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 140, 420, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 230;	// centered on origin along X
+    cube.position.y = 210;
+    cube.position.z = -252.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // kitchen wall 4
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 160, 160, 5, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 80;	// centered on origin along X
+    cube.position.y = 340;
+    cube.position.z = -252.5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // kitchen wall 5
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 300, 120, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = 162.5;	// centered on origin along X
+    cube.position.y = 150;
+    cube.position.z = -315;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // stars
+    var starPoints = [];
+
+    starPoints.push( new THREE.Vector2 (   0,  0 ) );
+    starPoints.push( new THREE.Vector2 ( 1500,  0 ) );
+    starPoints.push( new THREE.Vector2 (  750,  200 ) );
+    var starShape = new THREE.Shape( starPoints );
+
+    var extrusionSettings = { amount: 5 };
+
+    var starGeometry = new THREE.ExtrudeGeometry( starShape, extrusionSettings );
+
+    var star = new THREE.Mesh( starGeometry, whiteMaterial );
+    star.rotation.y = 270 * Math.PI / 180;
+    star.position.x = 0;	// centered on origin along X
+    star.position.y = 300;
+    star.position.z = -680;
+    setShadow(star);
+    scene.add(star);
+
+    star = new THREE.Mesh( starGeometry, whiteMaterial );
+    star.rotation.y = 270 * Math.PI / 180;
+    star.position.x = 501;	// centered on origin along X
+    star.position.y = 300;
+    star.position.z = -680;
+    setShadow(star);
+    scene.add(star);
+
+    // furnitures
+    // sofa /////////////////////////////////////////////////////////////////////
+    // sofa set
+    sofaGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 120, 30, 260, 1, 1, 1 ), darkBlueMaterial );
+    cube.position.x = 60;	// centered on origin along X
+    cube.position.y = 15;
+    setShadow(cube);
+    sofaGroup.add( cube );
+
+    // sofa cushion
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 130, 30, 124, 1, 1, 1 ), darkBlueMaterial );
+    cube.position.x = 65;	// centered on origin along X
+    cube.position.y = 45;
+    cube.position.z = -63;
+    setShadow(cube);
+    sofaGroup.add( cube );
+
+    // sofa cushion
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 130, 30, 124, 1, 1, 1 ), darkBlueMaterial );
+    cube.position.x = 65;	// centered on origin along X
+    cube.position.y = 45;
+    cube.position.z = 63;
+    setShadow(cube);
+    sofaGroup.add( cube );
+
+    // sofa cushion
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 30, 80, 124, 1, 1, 1 ), darkBlueMaterial );
+    cube.position.x = 15;	// centered on origin along X
+    cube.position.y = 75;
+    cube.position.z = -63;
+    setShadow(cube);
+    sofaGroup.add( cube );
+
+    // sofa cushion
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 30, 80, 124, 1, 1, 1 ), darkBlueMaterial );
+    cube.position.x = 15;	// centered on origin along X
+    cube.position.y = 75;
+    cube.position.z = 63;
+    setShadow(cube);
+    sofaGroup.add( cube );
+
+    // sofa back
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 20, 80, 260, 1, 1, 1 ), darkBlueMaterial );
+    cube.position.x = -10;	// centered on origin along X
+    cube.position.y = 40;
+    cube.position.z = 0;
+    setShadow(cube);
+    sofaGroup.add( cube );
+
+    // sofa hand rest
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 130, 60, 40, 1, 1, 1 ), darkBlueMaterial );
+    cube.position.x = 55;	// centered on origin along X
+    cube.position.y = 40;
+    cube.position.z = -150;
+    setShadow(cube);
+    sofaGroup.add( cube );
+
+    // sofa hand rest
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 130, 60, 40, 1, 1, 1 ), darkBlueMaterial );
+    cube.position.x = 55;	// centered on origin along X
+    cube.position.y = 40;
+    cube.position.z = 150;
+    setShadow(cube);
+    sofaGroup.add( cube );
+
+    sofaGroup.position.x = 30;
+    sofaGroup.position.z = 300;
+
+    scene.add( sofaGroup );
+
+    // paint //////////////////////////////////////////////////////////////////
+    var map = THREE.ImageUtils.loadTexture( 'images/Starry_Nights_1.jpg' );
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.anisotropy = 16;
+
+    var paintMaterial = new THREE.MeshLambertMaterial( { ambient: 0xbbbbbb, map: map, side: THREE.DoubleSide } );
+
+    object = new THREE.Mesh( new THREE.CubeGeometry( 4, 150, 50, 4, 4, 4 ), paintMaterial );
+    object.position.set( 7, 200, 380 );
+    scene.add( object );
+
+    var map = THREE.ImageUtils.loadTexture( 'images/Starry_Nights_2.jpg' );
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.anisotropy = 16;
+
+    var paintMaterial = new THREE.MeshLambertMaterial( { ambient: 0xbbbbbb, map: map, side: THREE.DoubleSide } );
+
+    object = new THREE.Mesh( new THREE.CubeGeometry( 4, 150, 50, 4, 4, 4 ), paintMaterial );
+    object.position.set( 7, 200, 300 );
+    scene.add( object );
+
+    var map = THREE.ImageUtils.loadTexture( 'images/Starry_Nights_3.jpg' );
+    map.wrapS = map.wrapT = THREE.RepeatWrapping;
+    map.anisotropy = 16;
+
+    var paintMaterial = new THREE.MeshLambertMaterial( { ambient: 0xbbbbbb, map: map, side: THREE.DoubleSide } );
+
+    object = new THREE.Mesh( new THREE.CubeGeometry( 4, 150, 50, 4, 4, 4 ), paintMaterial );
+    object.position.set( 7, 200, 220 );
+    scene.add( object );
+
+    // TV /////////////////////////////////////////////////////////////////////
+    // TV set
+    tvGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 60, 60, 200, 1, 1, 1 ), shineWhiteMaterial );
+    cube.position.x = 30;	// centered on origin along X
+    cube.position.y = 30;
+    cube.position.z = 0;
+    setShadow(cube);
+    tvGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 4, 2, 200, 1, 1, 1 ), ironGrayMaterial );
+    cube.position.x = -2;	// centered on origin along X
+    cube.position.y = 54;
+    cube.position.z = 0;
+    setShadow(cube);
+    tvGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 100, 160, 1, 1, 1 ), blackMaterial );
+    cube.position.x = 30;	// centered on origin along X
+    cube.position.y = 120;
+    cube.position.z = 0;
+    setShadow(cube);
+    tvGroup.add( cube );
+
+    var plane = new THREE.Mesh(
+            new THREE.PlaneGeometry( 152, 92 ), shineBlackMaterial );
+    plane.rotation.y =  -90 * ( Math.PI / 180 );
+    plane.position.x = 26;	// centered on origin along X
+    plane.position.y = 120;
+    plane.position.z = 0;
+    setShadow(cube);
+    tvGroup.add( plane );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 30, 10, 1, 1, 1 ), blackMaterial );
+    cube.position.x = 34;	// centered on origin along X
+    cube.position.y = 75;
+    cube.position.z = 0;
+    setShadow(cube);
+    tvGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 30, 5, 50, 1, 1, 1 ), blackMaterial );
+    cube.position.x = 30;	// centered on origin along X
+    cube.position.y = 62;
+    cube.position.z = 0;
+    setShadow(cube);
+    tvGroup.add( cube );
+
+    tvGroup.position.x = 430;
+    tvGroup.position.z = 300;
+
+    scene.add( tvGroup );
+
+    // dining set /////////////////////////////////////////////////////////////////////
+    diningGroup = new THREE.Object3D();
+    // dining table
+    // table plate
+    diningTableGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 220, 5, 140, 1, 1, 1 ), tableMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 90;
+    cube.position.z = 0;
+    setShadow(cube);
+    diningTableGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 200, 20, 120, 1, 1, 1 ), tableMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 77;
+    cube.position.z = 0;
+    setShadow(cube);
+    diningTableGroup.add( cube );
+
+    // table legs
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 90, 10, 1, 1, 1 ), tableMaterial );
+    cube.position.x = 100;	// centered on origin along X
+    cube.position.y = 45;
+    cube.position.z = 60;
+    setShadow(cube);
+    diningTableGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 90, 10, 1, 1, 1 ), tableMaterial );
+    cube.position.x = 100;	// centered on origin along X
+    cube.position.y = 45;
+    cube.position.z = -60;
+    setShadow(cube);
+    diningTableGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 90, 10, 1, 1, 1 ), tableMaterial );
+    cube.position.x = -100;	// centered on origin along X
+    cube.position.y = 45;
+    cube.position.z = 60;
+    setShadow(cube);
+    diningTableGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 90, 10, 1, 1, 1 ), tableMaterial );
+    cube.position.x = -100;	// centered on origin along X
+    cube.position.y = 45;
+    cube.position.z = -60;
+    setShadow(cube);
+    diningTableGroup.add( cube );
+
+    // Runner
+    var runnerTexture = new THREE.ImageUtils.loadTexture( 'images/runner1.jpg' );
+    var runnerMaterial = new THREE.MeshBasicMaterial( { map: runnerTexture, side: THREE.DoubleSide } );
+    var runnerGeometry = new THREE.PlaneGeometry(222, 50, 10, 10);
+    var runner = new THREE.Mesh(runnerGeometry, runnerMaterial);
+    runner.position.x = 0;
+    runner.position.y = 94;
+    runner.position.z = 0;
+    runner.rotation.x = Math.PI / 2;
+    setShadow(cube);
+    diningTableGroup.add(runner);
+
+    var runnerTexture = new THREE.ImageUtils.loadTexture( 'images/runner2.jpg' );
+    var runnerMaterial = new THREE.MeshBasicMaterial( { map: runnerTexture, side: THREE.DoubleSide } );
+    var runnerGeometry = new THREE.PlaneGeometry(50, 32, 10, 10);
+    var runner = new THREE.Mesh(runnerGeometry, runnerMaterial);
+    runner.position.x = -111;
+    runner.position.y = 78;
+    runner.position.z = 0;
+    runner.rotation.y = -90 * Math.PI / 180;
+    setShadow(cube);
+    diningTableGroup.add(runner);
+
+    var runnerTexture = new THREE.ImageUtils.loadTexture( 'images/runner2.jpg' );
+    var runnerMaterial = new THREE.MeshBasicMaterial( { map: runnerTexture, side: THREE.DoubleSide } );
+    var runnerGeometry = new THREE.PlaneGeometry(50, 32, 10, 10);
+    var runner = new THREE.Mesh(runnerGeometry, runnerMaterial);
+    runner.position.x = 111;
+    runner.position.y = 78;
+    runner.position.z = 0;
+    runner.rotation.y = 90 * Math.PI / 180;
+    setShadow(cube);
+    diningTableGroup.add(runner);
+
+    diningGroup.add(diningTableGroup);
+
+    // dining chair
+    diningChairGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 60, 20, 60, 1, 1, 1 ), chairMaterial );
+    cube.position.x = 0;	// centered on origin along X
+    cube.position.y = 40;
+    cube.position.z = 0;
+    setShadow(cube);
+    diningChairGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 80, 60, 1, 1, 1 ), chairMaterial );
+    cube.rotation.z = 15 * Math.PI /180;
+    cube.position.x = -35;	// centered on origin along X
+    cube.position.y = 85;
+    cube.position.z = 0;
+    setShadow(cube);
+    diningChairGroup.add( cube );
+
+    // chair legs
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 30, 5, 1, 1, 1 ), tableMaterial );
+    cube.position.x = 27.5;	// centered on origin along X
+    cube.position.y = 15;
+    cube.position.z = 27.5;
+    setShadow(cube);
+    diningChairGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 30, 5, 1, 1, 1 ), tableMaterial );
+    cube.position.x = 27.5;	// centered on origin along X
+    cube.position.y = 15;
+    cube.position.z = -27.5;
+    setShadow(cube);
+    diningChairGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 30, 5, 1, 1, 1 ), tableMaterial );
+    cube.rotation.z = -10 * Math.PI /180;
+    cube.position.x = -30;	// centered on origin along X
+    cube.position.y = 15;
+    cube.position.z = 27.5;
+    setShadow(cube);
+    diningChairGroup.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 30, 5, 1, 1, 1 ), tableMaterial );
+    cube.rotation.z = -10 * Math.PI /180;
+    cube.position.x = -30;	// centered on origin along X
+    cube.position.y = 15;
+    cube.position.z = -27.5;
+    setShadow(cube);
+    diningChairGroup.add( cube );
+
+    diningChairGroup.position.x = -140;
+
+    diningGroup.add(diningChairGroup);
+
+    var diningChairGroup2 = diningChairGroup.clone();
+
+    diningChairGroup2.rotation.y = 180 * Math.PI / 180;
+    diningChairGroup2.position.x = 140;
+
+    diningGroup.add(diningChairGroup2);
+
+    var diningChairGroup2 = diningChairGroup.clone();
+
+    diningChairGroup2.rotation.y = 90 * Math.PI / 180;
+    diningChairGroup2.position.x = 50;
+    diningChairGroup2.position.z = 100;
+
+    diningGroup.add(diningChairGroup2);
+
+    var diningChairGroup2 = diningChairGroup.clone();
+
+    diningChairGroup2.rotation.y = 80 * Math.PI / 180;
+    diningChairGroup2.position.x = -50;
+    diningChairGroup2.position.z = 100;
+
+    diningGroup.add(diningChairGroup2);
+
+    var diningChairGroup2 = diningChairGroup.clone();
+
+    diningChairGroup2.rotation.y = -90 * Math.PI / 180;
+    diningChairGroup2.position.x = 50;
+    diningChairGroup2.position.z = -100;
+
+    diningGroup.add(diningChairGroup2);
+
+    var diningChairGroup2 = diningChairGroup.clone();
+
+    diningChairGroup2.rotation.y = -90 * Math.PI / 180;
+    diningChairGroup2.position.x = -50;
+    diningChairGroup2.position.z = -100;
+
+    diningGroup.add(diningChairGroup2);
+
+    diningGroup.add(diningChairGroup2);
+
+    //diningGroup.add( diningChairGroup );
+
+    diningGroup.position.x = 300;
+    diningGroup.position.z = -90;
+
+    // dining vase ///
+    // vase
+    vaseGroup = new THREE.Object3D();
+    var points = [];
+
+    for ( var i = 0; i < 32; i ++ ) {
+
+        points.push( new THREE.Vector3( Math.sin( i * 0.2 ) * Math.sin( i * 0.1 ) * 1.5 + 8, 0, ( i - 5 ) * 1.2 ) );
+
+    }
+
+    vase = new THREE.Mesh( new THREE.LatheGeometry( points, 20 ), vaseMaterial );
+    vase.rotation.x = -90 * Math.PI/180;
+    setShadow(vase);
+
+    vaseGroup.add(vase);
+
+    // vase branch
+    // branch 1
+    var numPoints = 20;
+
+    spline = new THREE.SplineCurve3([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 15, 0),
+        new THREE.Vector3(1, 26, 0),
+        new THREE.Vector3(3, 40, 0)
+    ]);
+
+    var geometry = new THREE.Geometry();
+    var splinePoints = spline.getPoints(numPoints);
+
+    for(var i = 0; i < splinePoints.length; i++){
+        geometry.vertices.push(splinePoints[i]);
+    }
+
+    var vaseBranch = new THREE.Line(geometry, vaseGreenMaterial);
+
+    // branch 2
+    var numPoints = 20;
+
+    spline = new THREE.SplineCurve3([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 17, 0),
+        new THREE.Vector3(5, 34, 0),
+        new THREE.Vector3(25, 50, 0)
+    ]);
+
+    var geometry = new THREE.Geometry();
+    var splinePoints = spline.getPoints(numPoints);
+
+    for(var i = 0; i < splinePoints.length; i++){
+        geometry.vertices.push(splinePoints[i]);
+    }
+
+    var vaseBranch_2 = new THREE.Line(geometry, vaseGreen2Material);
+
+    // flower petal
+    var x = 0, y = 0;
+
+    var petalShape = new THREE.Shape(); // From http://blog.burlock.org/html5/130-paths
+
+    petalShape.moveTo( x - 5, y);
+    petalShape.bezierCurveTo( x - 5, y, x, y + 5, x + 5, y );
+    petalShape.bezierCurveTo( x + 5, y, x + 10, y - 5, x + 15, y );
+    petalShape.bezierCurveTo( x + 15, y, x + 20, y + 5, x + 22, y - 10 );
+    petalShape.bezierCurveTo( x + 22, y - 10, x, y - 50, x + -22, y - 10 ); // middle
+    petalShape.bezierCurveTo( x + -25, y - 10, x + -20, y + 5, x + -15, y );
+    petalShape.bezierCurveTo( x + -15, y, x + -10, y - 5, x + -5, y );
+
+    var geometry = new THREE.ShapeGeometry( petalShape );
+
+    var petal = new THREE.Mesh( geometry,vaseFlowerMaterial );
+    //petal.rotation.set( 0, 0, Math.PI );
+    petal.scale.set( 0.1, 0.1, 0.1 );
+    petal.castShadow = true;
+
+    // big leaf
+    var x = 0, y = 0;
+
+    var leafShape = new THREE.Shape(); // From http://blog.burlock.org/html5/130-paths
+
+    leafShape.moveTo(x,y);
+    leafShape.quadraticCurveTo(x + 50, y - 80, x + 90, y - 10);
+    leafShape.quadraticCurveTo(x + 100, y - 10, x + 115, y - 40);
+    leafShape.quadraticCurveTo(x + 50, y + 80, x, y);
+
+
+    var leafGeometry = new THREE.ShapeGeometry( leafShape );
+
+    var bigLeaf = new THREE.Mesh( leafGeometry,vaseDarkGreenMaterial );
+    bigLeaf.scale.set( 0.08, 0.08, 0.08 );
+    bigLeaf.position.set(200,200,0);
+    bigLeaf.castShadow = true;
+
+    // small leaf
+    var smallLeaf = new THREE.Mesh( leafGeometry,vaseLightGreenMaterial );
+    smallLeaf.scale.set( 0.04, 0.04, 0.04 );
+    smallLeaf.position.set(200,200,0);
+    smallLeaf.castShadow = true;
+
+
+    // vase branches set 1
+    vaseSet1Group = new THREE.Object3D();
+    vaseBranch2 = vaseBranch.clone();
+    vaseBranch2.scale.set(-1, 1, 1);
+    vaseBranch2.rotation.set(0, -15*Math.PI / 180, 15*Math.PI / 180);
+    vaseBranch2.position.set(6, 0, 0);
+
+    vaseSet1Group.add(vaseBranch2);
+
+    vaseBranch2 = vaseBranch.clone();
+    vaseBranch2.scale.set(-1, 1, 1);
+    vaseBranch2.rotation.set(0, 15*Math.PI / 180, 15*Math.PI / 180);
+    vaseBranch2.position.set(6, 0, 0);
+
+    vaseSet1Group.add(vaseBranch2);
+
+    // flower
+    flowerGroup = new THREE.Object3D();
+
+    numOfpetal = 6;
+    for (var i = 0; i < 5; i++){
+        for (var j = 0; j < numOfpetal; j++){
+            var petal2 = petal.clone();
+            if (i == 0)
+                petal2.scale.set(0.1,0.1,0.1);
+            else if (i == 2)
+                petal2.scale.set(0.2,0.2,0.2);
+            else
+                petal2.scale.set(0.2-(i*0.02),0.2-(i*0.02),0.2-(i*0.02));
+            petal2.rotation.set((-45+i*8) * Math.PI/180,(j*360/numOfpetal)* Math.PI / 180,0);
+            petal2.position.x = ((3-i*0.8)+2)*Math.cos((90 + (j*360/numOfpetal)) * Math.PI / 180 );
+            petal2.position.y = i*1.8;
+            petal2.position.z = -((3-i*0.8)+2)*Math.sin((90 + (j*360/numOfpetal)) * Math.PI / 180 );
+            flowerGroup.add(petal2);
+        }
+    }
+    flowerGroup.rotation.set(0, 15*Math.PI / 180, 15*Math.PI / 180);
+    flowerGroup.position.set(-8, 40, 3.7);
+    vaseSet1Group.add( flowerGroup );
+
+    vaseGroup.add(vaseSet1Group);
+
+
+
+    // vase branches set 2
+    vaseSet2Group = new THREE.Object3D();
+    vaseBranch2 = vaseBranch_2.clone();
+    vaseBranch2.scale.set(1.3, 1.5, 1);
+    vaseBranch2.rotation.set(0, 5*Math.PI / 180, -20*Math.PI / 180);
+    vaseBranch2.position.set(-6, 0, 0);
+
+    vaseSet2Group.add(vaseBranch2);
+
+    vaseBranch2 = vaseBranch_2.clone();
+    vaseBranch2.scale.set(1.2, 1.4, 1);
+    vaseBranch2.rotation.set(0, 15*Math.PI / 180, -20*Math.PI / 180);
+    vaseBranch2.position.set(-6, 0, 0);
+
+    vaseSet2Group.add(vaseBranch2);
+
+    flowerSet2Group = new THREE.Object3D();
+    for(var i = 0; i < 25; i++){
+        var petal2 = petal.clone();
+        petal2.scale.set(0.25-(i*0.01),0.25-(i*0.007),0.25-(i*0.007));
+        petal2.rotation.set(Math.random()*2*Math.PI,Math.random()*2*Math.PI, Math.random()*2*Math.PI);
+        petal2.position.set(5+2*i+Math.random()*0.5,(2*i-0.032*i*i)+31+Math.random()*0.5,0);
+        flowerSet2Group.add(petal2);
+    }
+
+    flowerSet2Group.rotation.set(0, 5*Math.PI / 180, 0);
+
+    vaseSet2Group.add(flowerSet2Group);
+
+    flowerSet2Group = new THREE.Object3D();
+    for(var i = 0; i < 20; i++){
+        var petal2 = petal.clone();
+        petal2.scale.set(0.25-(i*0.01),0.25-(i*0.01),0.25-(i*0.01));
+        petal2.rotation.set(Math.random()*2*Math.PI,Math.random()*2*Math.PI, Math.random()*2*Math.PI);
+        petal2.position.set(5+2*i+Math.random()*0.5,(2*i-0.032*i*i)+31+Math.random()*0.5,0);
+        flowerSet2Group.add(petal2);
+    }
+
+    flowerSet2Group.rotation.set(0, 15*Math.PI / 180, 0);
+
+    vaseSet2Group.add(flowerSet2Group);
+
+    vaseGroup.add(vaseSet2Group);
+
+
+    // vase branches set 3
+    vaseSet3Group = new THREE.Object3D();
+    vaseBranch2 = vaseBranch_2.clone();
+    vaseBranch2.scale.set(1.1, 1.2, 1);
+    vaseBranch2.rotation.set(0, 22*Math.PI / 180, -5*Math.PI / 180);
+    vaseBranch2.position.set(0, 0, 0);
+
+    vaseSet3Group.add(vaseBranch2);
+
+    leafSet3Group = new THREE.Object3D();
+    for(var i = 0; i < 20; i++){
+        var smallLeaf2 = smallLeaf.clone();
+        smallLeaf2.rotation.set(Math.random()*2*Math.PI,Math.random()*2*Math.PI, Math.random()*2*Math.PI);
+        smallLeaf2.position.set(5+1.3*i+Math.random()*0.5,(1.3*i-0.032*i*i)+40+Math.random()*0.5,0);
+        leafSet3Group.add(smallLeaf2);
+    }
+    leafSet3Group.rotation.set(0, 22*Math.PI / 180, 0);
+
+    vaseSet3Group.add(leafSet3Group);
+
+    vaseBranch2 = vaseBranch_2.clone();
+    vaseBranch2.scale.set(1.2, 1.2, 1);
+    vaseBranch2.rotation.set(0, 26*Math.PI / 180, 1*Math.PI / 180);
+    vaseBranch2.position.set(0, 0, 0);
+
+    vaseSet3Group.add(vaseBranch2);
+
+    leafSet3Group = new THREE.Object3D();
+    for(var i = 0; i < 20; i++){
+        var smallLeaf2 = smallLeaf.clone();
+        smallLeaf2.rotation.set(Math.random()*2*Math.PI,Math.random()*2*Math.PI, Math.random()*2*Math.PI);
+        smallLeaf2.position.set(5+1.3*i+Math.random()*0.5,(1.3*i-0.032*i*i)+40+Math.random()*0.5,0);
+        leafSet3Group.add(smallLeaf2);
+    }
+    leafSet3Group.rotation.set(0, 26*Math.PI / 180, 0);
+
+    vaseSet3Group.add(leafSet3Group);
+
+    vaseBranch2 = vaseBranch_2.clone();
+    vaseBranch2.scale.set(1.2, 1.1, 1);
+    vaseBranch2.rotation.set(0, 34*Math.PI / 180, 0*Math.PI / 180);
+    vaseBranch2.position.set(0, 0, 0);
+
+    vaseSet3Group.add(vaseBranch2);
+
+    leafSet3Group = new THREE.Object3D();
+    for(var i = 0; i < 20; i++){
+        var smallLeaf2 = smallLeaf.clone();
+        smallLeaf2.rotation.set(Math.random()*2*Math.PI,Math.random()*2*Math.PI, Math.random()*2*Math.PI);
+        smallLeaf2.position.set(5+1.3*i+Math.random()*0.5,(1.3*i-0.032*i*i)+40+Math.random()*0.5,0);
+        leafSet3Group.add(smallLeaf2);
+    }
+    leafSet3Group.rotation.set(0, 34*Math.PI / 180, 0);
+
+    vaseSet3Group.add(leafSet3Group);
+
+    vaseBranch2 = vaseBranch_2.clone();
+    vaseBranch2.scale.set(1.1, 1.1, 1);
+    vaseBranch2.rotation.set(0, 48*Math.PI / 180, -2*Math.PI / 180);
+    vaseBranch2.position.set(0, 0, 0);
+
+    vaseSet3Group.add(vaseBranch2);
+
+    leafSet3Group = new THREE.Object3D();
+    for(var i = 0; i < 20; i++){
+        var smallLeaf2 = smallLeaf.clone();
+        smallLeaf2.rotation.set(Math.random()*2*Math.PI,Math.random()*2*Math.PI, Math.random()*2*Math.PI);
+        smallLeaf2.position.set(5+1.3*i+Math.random()*0.5,(1.3*i-0.032*i*i)+40+Math.random()*0.5,0);
+        leafSet3Group.add(smallLeaf2);
+    }
+    leafSet3Group.rotation.set(0, 48*Math.PI / 180, 0);
+
+    vaseSet3Group.add(leafSet3Group);
+
+    vaseBranch2 = vaseBranch_2.clone();
+    vaseBranch2.scale.set(1.1, 1.1, 1);
+    vaseBranch2.rotation.set(0, 56*Math.PI / 180, 2*Math.PI / 180);
+    vaseBranch2.position.set(0, 0, 0);
+
+    vaseSet3Group.add(vaseBranch2);
+
+    leafSet3Group = new THREE.Object3D();
+    for(var i = 0; i < 20; i++){
+        var smallLeaf2 = smallLeaf.clone();
+        smallLeaf2.rotation.set(Math.random()*2*Math.PI,Math.random()*2*Math.PI, Math.random()*2*Math.PI);
+        smallLeaf2.position.set(5+1.3*i+Math.random()*0.5,(1.3*i-0.032*i*i)+40+Math.random()*0.5,0);
+        leafSet3Group.add(smallLeaf2);
+    }
+    leafSet3Group.rotation.set(0, 56*Math.PI / 180, 0);
+
+    vaseSet3Group.add(leafSet3Group);
+
+    vaseBranch2 = vaseBranch_2.clone();
+    vaseBranch2.scale.set(1, 1, 1);
+    vaseBranch2.rotation.set(0, 75*Math.PI / 180, 0*Math.PI / 180);
+    vaseBranch2.position.set(0, 0, 0);
+
+    vaseSet3Group.add(vaseBranch2);
+
+    leafSet3Group = new THREE.Object3D();
+    for(var i = 0; i < 20; i++){
+        var smallLeaf2 = smallLeaf.clone();
+        smallLeaf2.rotation.set(Math.random()*2*Math.PI,Math.random()*2*Math.PI, Math.random()*2*Math.PI);
+        smallLeaf2.position.set(5+1.3*i+Math.random()*0.5,(1.3*i-0.032*i*i)+40+Math.random()*0.5,0);
+        leafSet3Group.add(smallLeaf2);
+    }
+    leafSet3Group.rotation.set(0, 75*Math.PI / 180, 0);
+
+    vaseSet3Group.add(leafSet3Group);
+
+    vaseGroup.add(vaseSet3Group);
+
+    // vase middle leaf set
+    bigLeaf2 = bigLeaf.clone();
+    bigLeaf2.rotation.set(0, 0, 60*Math.PI/180);
+    bigLeaf2.position.set(0,26,3);
+    vaseGroup.add(bigLeaf2);
+
+    bigLeaf2 = bigLeaf.clone();
+    bigLeaf2.scale.set(0.06,0.06,0.06);
+    bigLeaf2.rotation.set(0, 0, 50*Math.PI/180);
+    bigLeaf2.position.set(2,20,-2);
+    vaseGroup.add(bigLeaf2);
+
+    bigLeaf2 = bigLeaf.clone();
+    bigLeaf2.scale.set(0.04,0.04,0.04);
+    bigLeaf2.rotation.set(0, -20*Math.PI/180, 30*Math.PI/180);
+    bigLeaf2.position.set(0,16,2);
+    vaseGroup.add(bigLeaf2);
+
+    bigLeaf2 = bigLeaf.clone();
+    bigLeaf2.scale.set(0.06,0.06,0.06);
+    bigLeaf2.rotation.set(0, 120*Math.PI/180, 20*Math.PI/180);
+    bigLeaf2.position.set(0,20,-3);
+    vaseGroup.add(bigLeaf2);
+
+    bigLeaf2 = bigLeaf.clone();
+    bigLeaf2.scale.set(0.06,0.06,0.06);
+    bigLeaf2.rotation.set(0, 70*Math.PI/180, 25*Math.PI/180);
+    bigLeaf2.position.set(3,36,-1);
+    vaseGroup.add(bigLeaf2);
+
+    vaseGroup.position.set( 0, 96, 0 );
+    diningGroup.add( vaseGroup );
+
+
+    scene.add( diningGroup );
+
+
+    // Crystal chandelier /////////////////////////////////////////////////////////////////////
+    // Using wireframe materials to illustrate shape details.
+
+
+    chandelierGroup = new THREE.Object3D();
+    // chandelier middle
+    // torus knot
+    shape = THREE.SceneUtils.createMultiMaterialObject(
+            new THREE.SphereGeometry( 10, 32, 16, 0, 2 * Math.PI, 0, Math.PI / 2 ),
+            multiMaterial );
+    shape.rotation.x = Math.PI;
+    shape.position.set(0, 92, 0);
+    //setShadow(shape);
+    chandelierGroup.add(shape);
+
+    // sphere
+    var shape = THREE.SceneUtils.createMultiMaterialObject(
+            new THREE.SphereGeometry( 6, 32, 16 ),
+            multiMaterial );
+    shape.scale.y = 2;
+    shape.position.set(0, 68, 0);
+    //setShadow(shape);
+    chandelierGroup.add(shape);
+
+    // sphere
+    var shape = THREE.SceneUtils.createMultiMaterialObject(
+            new THREE.SphereGeometry( 6, 32, 16 ),
+            multiMaterial );
+    shape.scale.y = 2;
+    shape.position.set(0, 48, 0);
+    //setShadow(shape);
+    chandelierGroup.add(shape);
+
+    // pyramid - truncated
+    var shape = THREE.SceneUtils.createMultiMaterialObject(
+            // radiusAtTop, radiusAtBottom, height, segmentsAroundRadius, segmentsAlongHeight,
+            new THREE.CylinderGeometry( 4, 10, 20, 6, 4 ),
+            multiMaterial );
+    shape.position.set(0, 24, 0);
+    //setShadow(shape);
+    chandelierGroup.add(shape);
+
+    // torus knot
+    shape = THREE.SceneUtils.createMultiMaterialObject(
+            new THREE.SphereGeometry( 12, 32, 16, 0, 2 * Math.PI, 0, Math.PI / 2 ),
+            multiMaterial );
+    shape.rotation.x = Math.PI;
+    shape.position.set(0, 18, 0);
+    //setShadow(shape);
+    chandelierGroup.add(shape);
+
+    // chandelier resuse parts //////////
+    // chandelier drop
+    var dropGroup = new THREE.Object3D();
+    // pyramid
+    var dropShape = THREE.SceneUtils.createMultiMaterialObject(
+            // radiusAtTop, radiusAtBottom, height, segmentsAroundRadius, segmentsAlongHeight,
+            new THREE.CylinderGeometry( 0, 4, 8, 4, 4 ),
+            multiMaterial );
+    dropShape.position.set(0, 2, 0);
+    //setShadow(dropShape);
+    dropGroup.add(dropShape);
+
+    // octahedron
+    var dropShape = THREE.SceneUtils.createMultiMaterialObject(
+            new THREE.OctahedronGeometry( 4, 0 ),
+            multiMaterial );
+    dropShape.position.set(0, -2, 0);
+    //setShadow(dropShape);
+    scene.add( dropShape );
+
+    dropGroup.add( dropShape );
+
+    dropGroup.scale.z = 0.3;
+
+    var dropGroup2 = dropGroup.clone();
+    dropGroup2.position.x = 4;
+    dropGroup2.position.z = 4;
+
+    chandelierGroup.add(dropGroup2);
+
+    var dropGroup2 = dropGroup.clone();
+    dropGroup2.position.x = -4;
+    dropGroup2.position.z = 4;
+    chandelierGroup.add(dropGroup2);
+
+    var dropGroup2 = dropGroup.clone();
+    dropGroup2.position.x = 4;
+    dropGroup2.position.z = -4;
+    chandelierGroup.add(dropGroup2);
+
+    var dropGroup2 = dropGroup.clone();
+    dropGroup2.position.x = -4;
+    dropGroup2.position.z = -4;
+    chandelierGroup.add(dropGroup2);
+
+    chandelierGroup.position.copy(light1.position);
+
+
+    // candle group
+    candleGroup = new THREE.Object3D();
+    // bowl
+    shape = THREE.SceneUtils.createMultiMaterialObject(
+            new THREE.SphereGeometry( 6, 32, 16, 0, 2 * Math.PI, 0, Math.PI / 2 ),
+            multiMaterial );
+    shape.rotation.z = 180 * Math.PI / 180;
+    shape.position.set(0, 0, 0);
+    //setShadow(shape);
+    candleGroup.add(shape);
+
+    // bowl drops
+    var dropGroup2 = dropGroup.clone();
+    dropGroup2.position.set(6,-8,0);
+    candleGroup.add(dropGroup2);
+    var dropGroup2 = dropGroup.clone();
+    dropGroup2.position.set(-6,-8,0);
+    candleGroup.add(dropGroup2);
+
+    // candle bar
+    cylinder = new THREE.Mesh(
+            new THREE.CylinderGeometry( 2, 2, 8, 32 ), whiteMaterial );
+    cylinder.position.x = 0;
+    cylinder.position.y = 4;
+    cylinder.position.z = 0;
+    //setShadow(cylinder);
+    candleGroup.add( cylinder );
+
+    // candle light 1
+    shape = THREE.SceneUtils.createMultiMaterialObject(
+            // radiusAtTop, radiusAtBottom, height, segmentsAroundRadius, segmentsAlongHeight,
+            new THREE.CylinderGeometry( 0, 2, 6, 8, 4 ),
+            candleMultiMaterial );
+    shape.position.set(0, 13, 0);
+    //setShadow(shape);
+    candleGroup.add( shape );
+
+    // candle light 2
+    sphere =  THREE.SceneUtils.createMultiMaterialObject(
+            new THREE.SphereGeometry( 2, 8, 4 ), candleMultiMaterial);
+    sphere.position.set(0, 10, 0);
+    //setShadow(shape);
+    candleGroup.add(sphere);
+
+
+    // chandelier branch
+    branchGroup = new THREE.Object3D();
+    // branch 1 ///
+    branch1Group = new THREE.Object3D();
+    radius = 12;
+    branchRadius = 2;
+    arc = 0.25; // 90 degrees
+    radialSegments = 32;
+    for ( var i = 0; i <= arc*radialSegments ; i++ )
+    {
+        branchx = radius * Math.cos( i * 2*Math.PI / radialSegments );
+        branchy = radius * Math.sin( i * 2*Math.PI / radialSegments );
+        sphere =  THREE.SceneUtils.createMultiMaterialObject(
+                new THREE.SphereGeometry( 2, 8, 4 ), multiMaterial);
+        sphere.position.set(branchx, branchy, 0);
+        setShadow(sphere);
+        branch1Group.add(sphere);
+    }
+
+    branch1Group.rotation.z = -90 * Math.PI /180;
+
+    var candleGroup2 = candleGroup.clone();
+    candleGroup2.rotation.z = 90 * Math.PI / 180;
+    candleGroup2.position.set(-6,12,0);
+    branch1Group.add(candleGroup2);
+
+    branchGroup.add(branch1Group);
+
+    // branch 2 ///
+    branch2Group = new THREE.Object3D();
+    branch21Group = new THREE.Object3D();
+    radius = 12;
+    branchRadius = 2;
+    arc = 0.25; // 90 degrees
+    radialSegments = 32;
+    for ( var i = (2*arc*radialSegments); i >= arc*radialSegments ; i-- )
+    {
+        branchx = radius * Math.cos( i * 2*Math.PI / radialSegments );
+        branchy = radius * Math.sin( i * 2*Math.PI / radialSegments );
+        sphere =  THREE.SceneUtils.createMultiMaterialObject(
+                new THREE.SphereGeometry( 2, 8, 4 ), multiMaterial);
+        sphere.position.set(branchx, branchy, 0);
+        setShadow(sphere);
+        branch21Group.add(sphere);
+    }
+    branch21Group.position.y = -24;
+
+    branch2Group.add(branch21Group);
+
+    branch22Group = new THREE.Object3D();
+    radius = 12;
+    branchRadius = 2;
+    arc = 0.25; // 90 degrees
+    radialSegments = 32 ;
+    for ( var i = -arc*radialSegments; i <= arc*radialSegments ; i++ )
+    {
+        branchx = radius * Math.cos( i * 2*Math.PI / radialSegments );
+        branchy = radius * Math.sin( i * 2*Math.PI / radialSegments );
+        sphere =  THREE.SceneUtils.createMultiMaterialObject(
+                new THREE.SphereGeometry( 2, 8, 4 ), multiMaterial);
+        sphere.position.set(branchx, branchy, 0);
+        setShadow(sphere);
+        branch22Group.add(sphere);
+    }
+    branch2Group.add(branch22Group);
+
+    // candle
+    var candleGroup2 = candleGroup.clone();
+    candleGroup2.rotation.z = 90 * Math.PI / 180;
+    candleGroup2.position.set(-6,12,0);
+    branch2Group.add(candleGroup2);
+
+    // drop
+    var dropGroup2 = dropGroup.clone();
+    dropGroup2.rotation.z = 90 * Math.PI /180;
+    dropGroup2.position.set(24,0,0);
+    branch2Group.add(dropGroup2);
+
+    branch2Group.rotation.z = -90 * Math.PI /180;
+    branch2Group.position.set(24,-24, 0);
+
+    branchGroup.add(branch2Group);
+
+    // chain 1
+    segments = 16 ;
+    chain1Group = new THREE.Object3D();
+    for ( var i = 0; i <= segments ; i++ )
+    {
+        chainx = i / 2;
+        chainy = (i * i) / 8;
+        sphere =  THREE.SceneUtils.createMultiMaterialObject(
+                new THREE.SphereGeometry( 1, 4, 2 ), multiMaterial);
+        sphere.position.set( chainx,  chainy, 0);
+        setShadow(sphere);
+        chain1Group.add(sphere);
+    }
+    chain1Group.scale.x = -1;
+    chain1Group.position.set(10, 10, 0);
+    branchGroup.add(chain1Group);
+
+    // chain 2 - use gravity like formula
+    speed = 40;
+    acc = 2;
+    segments = 32 ;
+    chain2Group = new THREE.Object3D();
+    for ( var i = 0; i <= segments ; i++ )
+    {
+        chainx = i;
+        chainy = (speed*i - 0.5 * (i * i * acc))/12;
+        sphere =  THREE.SceneUtils.createMultiMaterialObject(
+                new THREE.SphereGeometry( 1, 4, 2 ), multiMaterial);
+        sphere.position.set( chainx,  chainy, 0);
+        setShadow(sphere);
+        chain2Group.add(sphere);
+    }
+    chain2Group.scale.y = -1;
+    chain2Group.position.set(0, -12, 0);
+    branchGroup.add(chain2Group);
+
+    radius = 6;
+    branchNumber = 6;
+    for (var i=0; i<branchNumber; i++){
+        var branchGroup2 =  branchGroup.clone();
+        branchx = radius * Math.cos( i * 2 * Math.PI / branchNumber );
+        branchz = radius * Math.sin( i * 2 * Math.PI / branchNumber );
+        branchGroup2.rotation.y = - i * 2 * Math.PI / branchNumber;
+        branchGroup2.position.set(branchx, 52 ,branchz);
+        chandelierGroup.add(branchGroup2);
+    }
+
+    // hang chain
+    for (var i=0; i<20; i++){
+        // torus
+        shape = new THREE.Mesh(
+                new THREE.TorusGeometry( 1, 1, 8, 8 ),
+                ironMaterial );
+        shape.scale.y = 2;
+        shape.rotation.y = i*90*Math.PI/180;
+        shape.position.set(0, 94+(6*i), 0);
+        //setShadow(shape);
+        chandelierGroup.add( shape );
+    }
+
+    scene.add( chandelierGroup );
+
+
+    // right part of house
+    // master bedroom wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 210, 50, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -100;	// centered on origin along X
+    cube.position.y = 275;
+    cube.position.z = 850;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // master bedroom window
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry(205, 150, 5, 1, 1, 1 ), glassMaterial );
+    cube.position.x = -105;	// centered on origin along X
+    cube.position.y = 175;
+    cube.position.z = 847.5;	// negative offset 77 + half of depth 6/2
+    //cube.castShadow = true;
+    //cube.receiveShadow = true;
+    scene.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 210, 100, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -100;	// centered on origin along X
+    cube.position.y = 50;
+    cube.position.z = 850;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 300, 300, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -355;	// centered on origin along X
+    cube.position.y = 150;
+    cube.position.z = 850;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // right wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 300, 1640, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -500;	// centered on origin along X
+    cube.position.y = 150;
+    cube.position.z = 30;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // stars
+    var starPoints = [];
+
+    starPoints.push( new THREE.Vector2 (   0,  0 ) );
+    starPoints.push( new THREE.Vector2 ( 1680,  0 ) );
+    starPoints.push( new THREE.Vector2 (  750,  250 ) );
+    var starShape = new THREE.Shape( starPoints );
+
+    var extrusionSettings = { amount: 5 };
+
+    var starGeometry = new THREE.ExtrudeGeometry( starShape, extrusionSettings );
+
+    var star = new THREE.Mesh( starGeometry, whiteMaterial );
+    star.rotation.y = 270 * Math.PI / 180;
+    star.position.x = 0;	// centered on origin along X
+    star.position.y = 300;
+    star.position.z = -810;
+    setShadow(star);
+    scene.add(star);
+
+    star = new THREE.Mesh( starGeometry, whiteMaterial );
+    star.rotation.y = 270 * Math.PI / 180;
+    star.position.x = -495;	// centered on origin along X
+    star.position.y = 300;
+    star.position.z = -810;
+    setShadow(star);
+    scene.add(star);
+
+    // back wall
+    // back wall 1
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 155, 310, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -72.5;	// centered on origin along X
+    cube.position.y = 155;
+    cube.position.z = -794;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // back wall 2
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 200, 70, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -250;	// centered on origin along X
+    cube.position.y = 275;
+    cube.position.z = -794;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // back window
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 200, 120, 10, 1, 1, 1 ), glassMaterial );
+    cube.position.x = -250;	// centered on origin along X
+    cube.position.y = 180;
+    cube.position.z = -794;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // back wall 3
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 200, 120, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -250;	// centered on origin along X
+    cube.position.y = 60;
+    cube.position.z = -794;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // back wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 155, 310, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -427.5;	// centered on origin along X
+    cube.position.y = 155;
+    cube.position.z = -794;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // small room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 310, 100, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -100;	// centered on origin along X
+    cube.position.y = 155;
+    cube.position.z = -740;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // small room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 100, 310, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -55;	// centered on origin along X
+    cube.position.y = 155;
+    cube.position.z = -710;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // small room wall (closet)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 70, 200, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -100;	// centered on origin along X
+    cube.position.y = 275;
+    cube.position.z = -590;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // small room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 105, 310, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -50;	// centered on origin along X
+    cube.position.y = 155;
+    cube.position.z = -485;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // small room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 310, 105, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -100;	// centered on origin along X
+    cube.position.y = 155;
+    cube.position.z = -435;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // small room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 140, 440, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -70;	// centered on origin along X
+    cube.position.y = 220;
+    cube.position.z = -380;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // small room wall (above door)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 120, 200, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -200;	// centered on origin along X
+    cube.position.y = 340;
+    cube.position.z = -380;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // small room door
+    doorGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 120, 240, 5, 1, 1, 1 ), whiteMaterial );
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    // small room door handle
+    doorHandleGroup2 = doorHandleGroup.clone();
+    doorHandleGroup2.rotation.y = -90 * Math.PI / 180;
+    doorHandleGroup2.position.x = -40;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = 6;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorHandleGroup2 = doorHandleGroup.clone();
+    doorHandleGroup2.rotation.y = 90 * Math.PI / 180;
+    doorHandleGroup2.position.x = -40;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -6;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorGroup.rotation.y = -90 * Math.PI /180;
+    doorGroup.position.x = -140;
+    doorGroup.position.y = 120;
+    doorGroup.position.z = -445;
+
+    scene.add(doorGroup);
+
+    // small room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 240, 440, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -380;	// centered on origin along X
+    cube.position.y = 220;
+    cube.position.z = -380;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // heater wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 200, 120, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -120;	// centered on origin along X
+    cube.position.y = 340;
+    cube.position.z = -315;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // heater door
+    doorGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 180, 120, 1, 1, 1 ), grayMaterial );
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    // heater door handle
+    doorHandleGroup2 = doorHandleGroup.clone();
+    //doorHandleGroup2.rotation.y = 0 * Math.PI / 180;
+    doorHandleGroup2.position.x = 6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorHandleGroup2 = doorHandleGroup.clone();
+    doorHandleGroup2.rotation.y = 180 * Math.PI / 180;
+    doorHandleGroup2.position.x = -6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorGroup.rotation.y = 165 * Math.PI /180;
+    doorGroup.position.x = -135;
+    doorGroup.position.y = 150;
+    doorGroup.position.z = -315;
+
+    scene.add(doorGroup);
+
+    // heater wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 60, 120, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -120;	// centered on origin along X
+    cube.position.y = 30;
+    cube.position.z = -315;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // heater wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 120, 500, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -65;	// centered on origin along X
+    cube.position.y = 250;
+    cube.position.z = -250;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bathroom 1 wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 440, 150, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -280;	// centered on origin along X
+    cube.position.y = 220;
+    cube.position.z = -300;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bath room 1 wall (beyond door)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 200, 120, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -280;	// centered on origin along X
+    cube.position.y = 340;
+    cube.position.z = -165;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bath room 1 door
+    doorGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 240, 120, 5, 1, 1, 1 ), whiteMaterial );
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    // bath room 1 door handle
+    doorHandleGroup2 = doorHandleGroup.clone();
+    //doorHandleGroup2.rotation.y = 0 * Math.PI / 180;
+    doorHandleGroup2.position.x = 6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorHandleGroup2 = doorHandleGroup.clone();
+    doorHandleGroup2.rotation.y = 180 * Math.PI / 180;
+    doorHandleGroup2.position.x = -6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorGroup.rotation.y = 90 * Math.PI /180;
+    doorGroup.position.x = -345;	// centered on origin along X
+    doorGroup.position.y = 120;
+    doorGroup.position.z = -220;
+
+    scene.add(doorGroup);
+
+    // bath room 1 wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 440, 20, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -280;	// centered on origin along X
+    cube.position.y = 220;
+    cube.position.z = -100;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bath room 1 wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 80, 540, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -235;	// centered on origin along X
+    cube.position.y = 270;
+    cube.position.z = -95;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bath room 1 wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 540, 80, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -200;	// centered on origin along X
+    cube.position.y = 270;
+    cube.position.z = -50;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bath room 1 wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 360, 540, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -315;	// centered on origin along X
+    cube.position.y = 270;
+    cube.position.z = -5;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bath room 1 tub
+    /*
+    var materialNormal = new THREE.MeshNormalMaterial({side: THREE.DoubleSide });
+    var cubeGeometry = new THREE.CubeGeometry( 100, 50, 100, 1, 1, 1 );
+    var cubeMesh = new THREE.Mesh( cubeGeometry );
+    var cubeBSP = new ThreeBSP( cubeMesh );
+
+    var sphereGeometry = new THREE.SphereGeometry( 55, 32, 32, 0, 2 * Math.PI, 0, Math.PI / 2 );
+    var sphereMesh = new THREE.Mesh( sphereGeometry );
+    var sphereBSP = new ThreeBSP( sphereMesh );
+
+    var newBSP = cubeBSP.subtract( sphereBSP );
+    var newMesh = newBSP.toMesh( materialNormal )
+    newMesh.position.set(-400, 1000, -200);
+    newMesh.scale.x = 1;
+    newMesh.rotation.z = Math.PI;
+    sphereMesh.position.set(-400, 1000, -200);
+    scene.add( newMesh );
+    */
+
+    // laundry room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 260, 120, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -140;	// centered on origin along X
+    cube.position.y = 370;
+    cube.position.z = 55;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // laundry room door
+    doorGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 240, 120, 1, 1, 1 ), grayMaterial );
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    // laundry room door handle
+    doorHandleGroup2 = doorHandleGroup.clone();
+    //doorHandleGroup2.rotation.y = 0 * Math.PI / 180;
+    doorHandleGroup2.position.x = 6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorHandleGroup2 = doorHandleGroup.clone();
+    doorHandleGroup2.rotation.y = 180 * Math.PI / 180;
+    doorHandleGroup2.position.x = -6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorGroup.rotation.y = -15 * Math.PI /180;
+    doorGroup.position.x = -125;
+    doorGroup.position.y = 120;
+    doorGroup.position.z = 55;
+
+    scene.add(doorGroup);
+
+    // laundry room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 200, 500, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -235;	// centered on origin along X
+    cube.position.y = 250;
+    cube.position.z = 120;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // laundry room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 500, 120, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -280;	// centered on origin along X
+    cube.position.y = 250;
+    cube.position.z = 55;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // laundry room wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 500, 120, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -330;	// centered on origin along X
+    cube.position.y = 250;
+    cube.position.z = 55;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bath room 2 wall (above door)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 200, 120, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -140;	// centered on origin along X
+    cube.position.y = 340;
+    cube.position.z = 185;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bath room 2 door
+    doorGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 240, 120, 5, 1, 1, 1 ), whiteMaterial );
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    // bath room 2 door handle
+    doorHandleGroup2 = doorHandleGroup.clone();
+    //doorHandleGroup2.rotation.y = 0 * Math.PI / 180;
+    doorHandleGroup2.position.x = 6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorHandleGroup2 = doorHandleGroup.clone();
+    doorHandleGroup2.rotation.y = 180 * Math.PI / 180;
+    doorHandleGroup2.position.x = -6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorGroup.rotation.y = 90 * Math.PI /180;
+    doorGroup.position.x = -200;	// centered on origin along X
+    doorGroup.position.y = 120;
+    doorGroup.position.z = 135;
+
+    scene.add(doorGroup);
+
+    // bath room 2 wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 440, 60, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -140;	// centered on origin along X
+    cube.position.y = 220;
+    cube.position.z = 275;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // bath room 2 wall
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 360, 440, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -315;	// centered on origin along X
+    cube.position.y = 220;
+    cube.position.z = 300;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // master room wall (above door)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 130, 260, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -70;	// centered on origin along X
+    cube.position.y = 370;
+    cube.position.z = 120;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // master room door
+    doorGroup = new THREE.Object3D();
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 5, 240, 120, 5, 1, 1, 1 ), whiteMaterial );
+    setShadow(cube);
+    doorGroup.add( cube );
+
+    // master room door handle
+    doorHandleGroup2 = doorHandleGroup.clone();
+    //doorHandleGroup2.rotation.y = 0 * Math.PI / 180;
+    doorHandleGroup2.position.x = 6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorHandleGroup2 = doorHandleGroup.clone();
+    doorHandleGroup2.rotation.y = 180 * Math.PI / 180;
+    doorHandleGroup2.position.x = -6;
+    doorHandleGroup2.position.y = 0;
+    doorHandleGroup2.position.z = -40;
+    doorGroup.add( doorHandleGroup2 );
+
+    doorGroup.rotation.y = 180 * Math.PI /180;
+    doorGroup.position.x = -15;	// centered on origin along X
+    doorGroup.position.y = 120;
+    doorGroup.position.z = 180;
+
+    scene.add(doorGroup);
+
+    // master room  wall (closet)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 10, 340, 100, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -140;	// centered on origin along X
+    cube.position.y = 170;
+    cube.position.z = 355;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // master room wall (closet)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 30, 340, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -160;	// centered on origin along X
+    cube.position.y = 170;
+    cube.position.z = 400;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // master room wall (closet)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 280, 40, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -315;	// centered on origin along X
+    cube.position.y = 320;
+    cube.position.z = 400;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // master room wall (closet)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 40, 340, 10, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -475;	// centered on origin along X
+    cube.position.y = 170;
+    cube.position.z = 400;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+    // master room wall (closet cover)
+    cube = new THREE.Mesh(
+            new THREE.CubeGeometry( 350, 10, 100, 1, 1, 1 ), whiteMaterial );
+    cube.position.x = -310;	// centered on origin along X
+    cube.position.y = 345;
+    cube.position.z = 355;	// negative offset 77 + half of depth 6/2
+    setShadow(cube);
+    scene.add( cube );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//    cube = new THREE.Mesh(
+//            new THREE.CubeGeometry( 400, 10, 1000, 1, 1, 1 ), whiteMaterial );
+//    cube.position.x = 200;	// centered on origin along X
+//    cube.position.y = 300;
+//    cube.position.z = 0;	// negative offset 77 + half of depth 6/2
+//    cube.castShadow = true;
+//    cube.receiveShadow = true;
+//    scene.add( cube );
+}
+
+function setShadow(object){
+    object.castShadow = true;
+    object.receiveShadow = true;
+}
+
+function animate()
+{
+    requestAnimationFrame( animate );
+    render();
+    update();
+}
+
+function update()
+{
+    if ( keyboard.pressed("z") )
+    {
+        // do something
+    }
+
+    controls.update();
+    camera.up = new THREE.Vector3(0,1,0);
+    stats.update();
+}
+
+function render()
+{
+    mirrorCube.visible = false;
+    mirrorCubeCamera.updateCubeMap( renderer, scene );
+    mirrorCube.visible = true;
+
+    renderer.render( scene, camera );
+}
+
+function drawHelpers() {
+    if (ground) {
+        Coordinates.drawGround({size:3000});
+    }
+    if (gridX) {
+        Coordinates.drawGrid({size:3000,scale:0.01});
+    }
+    if (gridY) {
+        Coordinates.drawGrid({size:3000,scale:0.01, orientation:"y"});
+    }
+    if (gridZ) {
+        Coordinates.drawGrid({size:3000,scale:0.01, orientation:"z"});
+    }
+    if (axes) {
+        Coordinates.drawAllAxes({axisLength:200,axisRadius:1,axisTess:50});
+    }
+}
+
+</script>
+
+</body>
+</html>

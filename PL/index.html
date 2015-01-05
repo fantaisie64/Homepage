@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN"
+"http://www.w3.org/TR/html4/frameset.dtd">
+<META charset="utf-8">
+<META HTTP-EQUIV="PRAGMA" CONTENT="NO-CACHE">  
+<META HTTP-EQUIV="EXPIRES" CONTENT="0">  
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE"> 
+
+<html>
+	<head>
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/svg.css">
+	</head>
+<body>
+<blockquote>
+
+<font face="Trebuchet MS, Helvetica, Arial">
+
+	<h1>L-System Dynamical Visualization</h1>
+	<table border="0">
+	<tbody>
+     <tr>
+       <td>
+       <!--<p><h3>L-System Visualizaion</h3></p>-->
+       <!--<p><img align="top" src="test.png" hspace="10" vspace="10" width="800" style="border: 3px
+black solid;"></a>-->
+		
+		<p align="left" style="width: 900px;"><div id="chart">
+			<svg>
+			</svg>
+		</div>
+		</p>
+		
+       <p><h5>UC Davis Computer Science</h5></p>
+       </td>
+       <td>
+       <p><h3>L-System Dynamical Source Code</h3></p>
+       <p align="center"><textarea id="mytextarea" name="rules" rows="20" cols="40">
+Symbols:
+  F forward
+  - left
+  + right
+  [ push
+  ] pop
+Axiom: F
+Rules: F [ - F ] F [ + F ] F
+Distance: 0.8
+Angle: 0.5
+Generations: 2
+Randomized: false
+LeafSize: 5
+Biased: none
+</textarea>
+        <p>Distance&nbsp;&nbsp;&nbsp;&nbsp
+        <input id="mydistance" type="text" id="seed:" name="seed" size="10" maxlenth="10" value="0.80"/>
+        <input id="mydistancescroll" style="width:200px;margin-bottom:3px;" type="range" min="0" max="100" value="80"/>
+        </p>
+        <p>angle&nbsp;&nbsp;&nbsp;&nbsp
+        <input id="myangle" type="text" name="angle:" id="angle" size="10" maxlength="10" value="0.50"/>
+        <input id="myanglescroll" style="width:200px;margin-bottom:3px;" type="range" min="0" max="100" value="50"/>
+        </p>
+        <p># Generations&nbsp;&nbsp;&nbsp;&nbsp
+        <input id="mygenerations" type="text" name="angle:" id="angle" size="10" maxlength="10" value="5"/>
+        <input id="mygenerationsscroll" style="width:150px;margin-bottom:3px;" type="range" min="1" max="8" value="2"/>
+        </p>
+        <button class="regenerate">Regenerate</button>
+		<input id="ra" type="radio" name="mode" value="lt" checked> L-System</input>
+		<input id="ra" type="radio" name="mode" value="bt" > Binary</input>  
+		<input id="cb" type="checkbox" unchecked>Randomized<br>
+     </tr>
+   </tbody>
+</font>
+</blockquote>
+<script src="js/d3.v3.min.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<script src="js/Three58.js"></script>
+<script>
+
+    var camera, scene, renderer, geometry, material, mesh;
+
+    // add 2
+//    var mirrorSphereCamera;
+
+    init();
+    animate();
+
+    function init() {
+
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 10000);
+        camera.position.z = 500;
+        scene.add(camera);
+
+        geometry = new THREE.CubeGeometry(100, 100, 100);
+
+        // delete
+        //material = new THREE.MeshNormalMaterial();
+
+        // add
+        material = new THREE.MeshPhongMaterial({color: 0xCC0000});
+
+        mesh = new THREE.Mesh(geometry, material);
+
+        scene.add(mesh);
+
+        // add 1
+        darkMaterial = new THREE.MeshLambertMaterial( { color: 0xffffcc } );
+        wireframeMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true, transparent: true } );
+        multiMaterial = [ darkMaterial, wireframeMaterial ];
+
+        shape = THREE.SceneUtils.createMultiMaterialObject(
+                new THREE.TorusKnotGeometry( 30, 6, 160, 10, 3, 7 ),
+                multiMaterial );
+        shape.position.set(100, 0, 200);
+        // add 1-2
+        //shape.scale.x = 2;
+        scene.add( shape );
+
+        // add 2
+        mirrorSphereCamera = new THREE.CubeCamera( 0.1, 5000, 512 );
+        scene.add( mirrorSphereCamera );
+        mirrorSphereMaterial = new THREE.MeshBasicMaterial( { envMap: mirrorSphereCamera.renderTarget } );
+        // add
+        sphereMaterial = new THREE.MeshLambertMaterial({color: 0x0000CC});
+        sphere = new THREE.Mesh(new THREE.SphereGeometry(100, 16, 16), mirrorSphereMaterial);
+        sphere.position.set(100, -100, -100);
+        scene.add(sphere);
+
+        // add 2
+        mirrorSphereCamera.position = sphere.position;
+        var ambientLight = new THREE.AmbientLight( 0x999999 );
+        scene.add(ambientLight);
+
+        // add
+        sunLight = new THREE.DirectionalLight(0xFFFFFF);
+        sunLight.position.set (-400, 400, 400);
+        sunLight.intensity = 2;
+        scene.add(sunLight);
+
+        // delete
+        // renderer = new THREE.CanvasRenderer();
+        // add
+        renderer = new THREE.WebGLRenderer( {antialias:true} );
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        // add
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        sphere.receiveShadow = true;
+        sphere.castShadow = true;
+        sunLight.castShadow = true;
+        renderer.shadowMapEnabled = true;
+
+        document.body.appendChild(renderer.domElement);
+
+    }
+
+    function animate() {
+
+        requestAnimationFrame(animate);
+        render();
+
+    }
+
+    function render() {
+
+        // add 2
+        sphere.visible = false;
+        mirrorSphereCamera.updateCubeMap( renderer, scene );
+        sphere.visible = true;
+
+        mesh.rotation.x += 0.01;
+        mesh.rotation.y += 0.02;
+
+        renderer.render(scene, camera);
+
+    }
+</script>
+</body>
+</html>

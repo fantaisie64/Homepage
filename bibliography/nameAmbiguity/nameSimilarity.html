@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<html>
+<head>
+<title>Coauthorship Network Graph Merge</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<div id="container">
+  <div id="leftColumn">
+    <p>
+      <a href="http://vidi.cs.ucdavis.edu/new" target="_blank"><img align="left" src="logo.png" border="0" alt="VIDI" height="50"></a>
+      <Font id="title">Coauthorship Network Graph Merge</Font>
+    </p>
+    <div id="leftSmallColumn">
+      <p>
+        <Font id="startText">Accum. All</Font>
+        <input type="radio" id="thresholdModeRadioButton" name="thresholdModeRadioButton" value="OverAll" checked="true"/>
+        <Font id="endText">Match Specific</Font>
+        <input type="radio" id="thresholdModeRadioButton" name="thresholdModeRadioButton" value="MatchSpecific"/>
+      </p>
+      <p>
+      <Font id="matchLnameText">Match Last Name:</font>
+      <input id="matchCheckbox" type="checkbox" checked/>
+      </p>
+      <p>
+        <input id="mergeButton" onclick="merge()" type="button" value="MERGE"/>
+        <div id ="loadingDiv"><img id = "loadingImage" src = "loading.gif"></div>
+        <Font id="loadingText" class="text">Initial State</font>
+      </p>
+    </div>
+  <div id="rightSmallColumn">
+    <p id="overallColumn" align="right">
+      <Font id="overallText" class="text">Overall:100</font>
+      <input id="overallScrollbar" type="range" min="0" max="200" value="100"/>
+    </p>
+    <p id="nameSimilarityColumn" align="right">
+      <input id="nameSimilarityCheckbox" type="checkbox" checked/>
+      <Font id="nameSimilarityText" class="text">Name Similarity:50</font>
+      <input id="nameSimilarityScrollbar" type="range" min="0" max="100" value="50"/>
+    </p>
+    <p id="collaborationOverlapColumn" align="right">
+      <input id="collaborationOverlapCheckbox" type="checkbox" checked/>
+      <Font id="collaborationOverlapText" class="text">Collaboration Overlap:50</font>
+      <input id="collaborationOverlapScrollbar" type="range" min="0" max="100" value="50"/>
+    </p>
+  </div>
+</div>
+<div id="rightColumn">
+  <table id="dataTable">
+    <tr>
+      <th style="background-color:rgba(210,210,210,0.7);"><Font>Merging Steps</Font></th>
+      <th style="background-color:rgba(210,210,210,0.7);"><Font>#Nodes</Font></th>
+      <th style="background-color:rgba(210,210,210,0.7);"><Font>#Merged Nodes</Font></th>
+      <th style="background-color:rgba(210,210,210,0.7);"><Font>#Edges</Font></th>
+      <th style="background-color:rgba(210,210,210,0.7);"><Font>#Merged Edges</Font></th>
+    </tr>
+  </table>
+</div>
+</div>
+<script type="text/javascript" src="d3.js"></script>
+<script type="text/javascript" src="jquery-latest.js"></script>
+<!--<script type="text/javascript" src="merge.js"></script>-->
+<script type="text/javascript">
+//data
+var jsonData;
+
+//relation
+// var fuzzLnameSimilarities = new Array();
+// var fuzzFnameSimilarities = new Array();
+// var fuzzNameSimilarities = new Array();
+// var collaborationOverlaps = new Array();
+
+//threshold
+var overallThreshold = 100.0;
+var lnameSimilarityThreshold = 50.0;
+var fnameSimilarityThreshold = 50.0;
+var nameSimilarityThreshold = 50.0;
+var collaborationOverlapThreshold = 50.0;
+
+//mode
+function Enum(){
+    for( var i = 0; i < arguments.length; ++i ){
+        this[arguments[i]] = i;
+    }
+    return this;
+}
+var thresholdModeEnum = new Enum("OverAll", "MatchSpecific");
+var matchLname = true;
+var thresholdMode = thresholdModeEnum.OverAll;
+var nameSimilarityChecked = true;
+var collaborationOverlapChecked = true;
+
+//count
+var originalNodeCount = 0;
+var stepCount = 1;
+var nodeCount = 0;
+var mergedNodeCount = 0;
+var linkCount = 0;
+var mergedLinkCount = 0;
+
+var mergeWorker = new Worker('merge.js');
+
+var beforeComputingTime, afterComputinTime;
+
+
+var width = $(window).width()-10,
+    height = $(window).height()-20;
+
+var color = d3.scale.category20();
+
+var force = d3.layout.force()
+	.gravity(1.0)
+    .charge(-1024)
+    .linkDistance(function(d) { return 5*Math.sqrt(d.value/4); })
+    .size([width, height]);
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .call(d3.behavior.zoom().on("zoom", rescale));
+    
+    
+var vis = svg
+    .append('svg:g');
+
+var overallScrollbarValue = d3.select("#overallScrollbar");
+var nameSimilarityScrollbarValue = d3.select("#nameSimilarityScrollbar");
+var collaborationOverlapScrollbarValue = d3.select("#collaborationOverlapScrollbar");
+var thresholdModeRadioButtonValue = d3.selectAll("#thresholdModeRadioButton");
+var matchLnameCheckboxValue = d3.select("#matchCheckbox");
+var nameSimilarityCheckboxValue = d3.select("#nameSimilarityCheckbox");
+var collaborationOverlapCheckboxValue = d3.select("#collaborationOverlapCheckbox");
+var dataTable = document.getElementById("dataTable");
+var loadingDiv = document.getElementById("loadingDiv");
+var loadingText = d3.select("#loadingText");
+
+loadingText.text("Initializing Graph...");
+show();
+d3.json("nameSimilarity/nameSimilarity.json", function(error, data) {
+  // d3.json("nameSimilarity/test3.json", function(error, data) {
+  // d3.csv("nameSimilarity/testf3.csv", function(fnameS) {
+  // d3.csv("nameSimilarity/test3.csv", function(nameS) {
+  jsonData = data;
+  originalNodeCount = jsonData.nodes.length;
+  for(var i=0;i<jsonData.nodes.length;i++){
+    //indices
+    var temp = new Array();
+    jsonData.nodes[i].indices = temp;
+    jsonData.nodes[i].indices.push(i);
+    //names
+    var temp2 = new Array();
+    jsonData.nodes[i].names = temp2;
+    jsonData.nodes[i].names.push(jsonData.nodes[i].name);
+  }
+  //newJsonData = jQuery.extend(true, {}, jsonData);
+  updateGraph(jsonData);
+
+  overallScrollbarValue.on("change", function () {
+    overallThreshold = this.value;
+    d3.select("#overallText").text("Overall:"+overallThreshold);
+  });
+  nameSimilarityScrollbarValue.on("change", function() {
+    nameSimilarityThreshold = this.value;
+    d3.select("#nameSimilarityText").text("Name Similarity:"+nameSimilarityThreshold);
+  });
+  collaborationOverlapScrollbarValue.on("change", function() {
+    collaborationOverlapThreshold = this.value;
+    d3.select("#collaborationOverlapText").text("Collaboration Overlap:"+collaborationOverlapThreshold);
+  });
+  thresholdModeRadioButtonValue.on("change", function() {
+    if(this.value == "OverAll")
+      thresholdMode = thresholdModeEnum.OverAll;
+    else if(this.value == "MatchSpecific")
+      thresholdMode = thresholdModeEnum.MatchSpecific;
+  });
+  matchLnameCheckboxValue.on("change", function() {
+    matchLname = this.checked;
+  });
+  nameSimilarityCheckboxValue.on("change", function() {
+    nameSimilarityChecked = this.checked;
+  });
+  collaborationOverlapCheckboxValue.on("change", function() {
+    collaborationOverlapChecked = this.checked;
+  });
+
+  loadingText.text("Initializing Lookup Table...");
+  loadCSV();
+});
+
+function loadCSV(){
+  // d3.csv("nameSimilarity/fuzzLnameSimilarity.csv", function(lnameS){
+  d3.csv("nameSimilarity/fuzzFnameSimilarity.csv", function(fnameS){
+  d3.csv("nameSimilarity/fuzzNameSimilarity.csv",function(nameS){
+    loadingText.text("Initializing Merging Thread...");
+    fuzzNameSimilarities = nameS;
+    fuzzFnameSimilarities = fnameS;
+    var initData = {fuzzFnameSimilarities:fuzzFnameSimilarities, fuzzNameSimilarities:fuzzNameSimilarities};
+    mergeWorker.postMessage(JSON.stringify({message:"init", data:initData}));
+    initData =undefined;
+  });
+  });
+//});
+}
+
+function updateGraph(jsonData){
+
+  force
+      .nodes(jsonData.nodes)
+      .links(jsonData.links)
+      .start();
+
+  nodeCount = jsonData.nodes.length;
+  linkCount = jsonData.links.length;
+
+  var link = vis.selectAll("line.link")
+      .data(jsonData.links);
+
+  link.enter().append("line")
+      .attr("class", "link")
+      .style("stroke-width", function(d) {return d.value;});
+
+  var node = vis.selectAll("circle.node")
+      .data(jsonData.nodes);
+
+  node.enter().append("circle")
+      .attr("class", "node")
+      .attr("r", 8)
+      .style("opacity", 0.8)
+      .style("fill", function(d) { return color(d.group); })
+      .call(force.drag)
+      .append("title")
+      .text(function(d) { return d.name; });
+
+  node.select("title").text(function(d) { return d.name; });
+
+  link.exit().remove().transition().duration(5000);
+  node.exit().remove().transition().duration(5000);
+  link.transition().duration(1000).style("stroke-width", function(d) {return d.value;});
+  node.transition().duration(1000).style("fill", function(d) { return color(d.group); });
+
+  force.on("tick", function() {
+    link.attr("x1", function(d) { return d.source.x; })
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+
+    node.attr("cx", function(d) { return d.x; })
+        .attr("cy", function(d) { return d.y; });
+  });
+
+  addDataTableRow();
+
+  //console.log(jsonData.nodes);
+  //console.log(jsonData.links);
+  // Find a <table> element with id="myTable":
+}
+
+function addDataTableRow(){
+  var row = dataTable.insertRow(stepCount);
+  var cell0 = row.insertCell(0);
+  var cell1 = row.insertCell(1);
+  var cell2 = row.insertCell(2);
+  var cell3 = row.insertCell(3);
+  var cell4 = row.insertCell(3);
+
+  cell0.style.backgroundColor = color(stepCount-1);
+  cell1.style.backgroundColor = color(stepCount-1);
+  cell2.style.backgroundColor = color(stepCount-1);
+  cell3.style.backgroundColor = color(stepCount-1);
+  cell4.style.backgroundColor = color(stepCount-1);
+  cell0.style.opacity = 0.7;
+  cell1.style.opacity = 0.7;
+  cell2.style.opacity = 0.7;
+  cell3.style.opacity = 0.7;
+  cell4.style.opacity = 0.7;
+
+  cell0.innerHTML = stepCount.toString();
+  cell1.innerHTML = nodeCount.toString();
+  cell2.innerHTML = mergedNodeCount.toString();
+  cell3.innerHTML = linkCount.toString();
+  cell4.innerHTML = mergedLinkCount.toString();
+}
+
+function executeMerge(deleted, replaced){
+  loadingText.text("Executing Merge...");
+  var i, j;
+  for(i=0;i<deleted.length;i++){
+    for(j=0;j<jsonData.links.length;j++){
+      if(jsonData.links[j].source.index == deleted[i]){
+          //console.log(jsonData.links[j]);
+          jsonData.links[j].source = jsonData.nodes[replaced[i]];
+      }
+      if(jsonData.links[j].target.index == deleted[i]){
+          jsonData.links[j].target = jsonData.nodes[replaced[i]];
+      }
+    }
+  }
+
+  //map duplicate links for later deletion - to-do: remove duplicate links with the same source-target or target-source
+  var mappedLinks = {};
+  var deletedLinks = [];
+  for(j=0;j<jsonData.links.length;j++){
+    if(mappedLinks[jsonData.links[j].target.index] == undefined){
+      var newMappedLink = {};
+      newMappedLink[jsonData.links[j].source.index] = j;
+      mappedLinks[jsonData.links[j].target.index] = newMappedLink;
+    }else{
+      if(mappedLinks[jsonData.links[j].target.index][jsonData.links[j].source.index] == undefined){
+        mappedLinks[jsonData.links[j].target.index][jsonData.links[j].source.index] = j;
+      }else{
+        //match previous link
+        jsonData.links[mappedLinks[jsonData.links[j].target.index][jsonData.links[j].source.index]].value += jsonData.links[j].value;
+        deletedLinks.push(j);
+      }
+    }
+  }
+  mappedLinks = undefined;
+
+  //remove links
+  deletedLinks.sort(sortNumber);
+  mergedLinkCount = deletedLinks.length;
+  for(i = deletedLinks.length-1; i>=0; i--){
+    jsonData.links.splice(deletedLinks[i], 1);
+  }
+  deletedLinks = undefined;
+
+
+  for(i=0;i<deleted.length;i++){
+    //jsonData.nodes[deleted[i]].group = 1;
+    
+    //group
+    jsonData.nodes[replaced[i]].group = stepCount;
+    
+    //names
+    jsonData.nodes[replaced[i]].names = jsonData.nodes[replaced[i]].names.concat(jsonData.nodes[deleted[i]].names);
+    jsonData.nodes[replaced[i]].names = jsonData.nodes[replaced[i]].names.sort().filter(function(el,ii,a){return ii==a.indexOf(el);});
+    jsonData.nodes[replaced[i]].name = jsonData.nodes[replaced[i]].names[0];
+    for(j=1;j<jsonData.nodes[replaced[i]].names.length;j++){
+      jsonData.nodes[replaced[i]].name = jsonData.nodes[replaced[i]].name + "\n" + jsonData.nodes[replaced[i]].names[j];
+    }
+
+    //indices
+    jsonData.nodes[replaced[i]].indices = jsonData.nodes[replaced[i]].indices.concat(jsonData.nodes[deleted[i]].indices);
+    jsonData.nodes[replaced[i]].indices.sort(sortNumber); //must be no duplicate
+    
+    // for(var j=0;j<jsonData.nodes.length;j++){
+    //   console.log(jsonData.nodes[j]);
+    // }
+    //jsonData.nodes[deleted[i]]= jsonData.nodes[replaced[i]];
+    //jsonData.nodes[deleted[i]].index = replaced[i];
+    
+  }
+
+  //remove nodes
+  deleted = deleted.sort(sortNumber).filter(function(el,ii,a){return ii==a.indexOf(el);});
+  mergedNodeCount = deleted.length;
+  for(i = deleted.length-1; i>=0; i--){
+    jsonData.nodes.splice(deleted[i], 1);
+  }
+
+  //console.log(jsonData.nodes);
+  //console.log(jsonData.links);
+  stepCount += 1;
+  
+  loadingText.text("Updating Graph...");
+  updateGraph(jsonData);
+  hide();
+  afterComputingTime = new Date();
+  var interval = afterComputingTime.getTime() - beforeComputingTime.getTime();
+  loadingText.text("Done merging in "+interval.toString()+"ms");
+}
+
+function sortNumber(a,b) {
+    return a - b;
+}
+
+function merge(){
+  show();
+  beforeComputingTime = new Date();
+  loadingText.text("Transferring Merge Data...");
+
+  //merge all data
+  var mergeData = {jsonData:jsonData};
+  // var mergeRelation = {
+  //   fuzzLnameSimilarities:fuzzLnameSimilarities,
+  //   fuzzFnameSimilarities:fuzzFnameSimilarities,
+  //   fuzzNameSimilarities:fuzzNameSimilarities
+  //   collaborationOverlaps:collaborationOverlaps
+  // };
+  var mergeThreshold = {
+    overallThreshold:overallThreshold,
+    lnameSimilarityThreshold:lnameSimilarityThreshold,
+    fnameSimilarityThreshold:fnameSimilarityThreshold,
+    nameSimilarityThreshold:nameSimilarityThreshold,
+    collaborationOverlapThreshold:collaborationOverlapThreshold
+  };
+  var mergeMode = {
+    matchLname:matchLname,
+    thresholdMode:thresholdMode,
+    nameSimilarityChecked:nameSimilarityChecked,
+    collaborationOverlapChecked:collaborationOverlapChecked
+  };
+  var mergeCount = {
+    originalNodeCount:originalNodeCount,
+    stepCount:stepCount,
+    nodeCount:nodeCount,
+    mergedNodeCount:mergedNodeCount,
+    linkCount:linkCount,
+    mergedLinkCount:mergedLinkCount
+  };
+  var mergeAllData = {
+    message:"initMerge",
+    mergeData:mergeData,
+    // mergeRelation:mergeRelation,
+    mergeThreshold:mergeThreshold,
+    mergeMode:mergeMode,
+    mergeCount:mergeCount
+  };
+
+  mergeWorker.postMessage(JSON.stringify(mergeAllData));
+}
+
+mergeWorker.onmessage = function(e) {
+  originalMessage = JSON.parse(e.data);
+  if(originalMessage.message == "Done Initialization"){
+    hide();
+    loadingText.text(originalMessage.message);
+  }else if(originalMessage.message == "doneMerge"){
+    var mergeAllData = originalMessage.data;
+    //get all data
+    var deleted = mergeAllData.deleted;
+    var replaced = mergeAllData.replaced;
+    executeMerge(deleted,replaced);
+  }else{
+    loadingText.text(originalMessage.message);
+  }
+};
+
+mergeWorker.onerror = function(e) {
+      alert('Error: Line ' + e.lineno + ' in ' + e.filename + ': ' + e.message);
+    };
+
+function show(){
+    loadingDiv.style.display = "block";
+  };
+
+function hide(){
+    loadingDiv.style.display = "none";
+  };
+
+function rescale() {
+	trans=d3.event.translate;
+	scale=d3.event.scale;
+
+	vis.attr("transform", "translate(" + trans + ")" + " scale(" + scale + ")");
+}
+
+</script>
+</body>
+</html>

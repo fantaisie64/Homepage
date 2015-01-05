@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="d3.v2.min.js"></script>
+<script src="jquery-latest.js"></script>
+<head>
+	<title>Broker Networks</title>
+<style>
+	
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: auto;
+  position: relative;
+  background: black;
+}
+
+input[type='range'] {
+    -webkit-appearance: none !important;
+    height:3px;
+}
+
+.button {
+	position:absolute;
+	top:30px;
+	font-family: Verdana, Arial, Helvetica, sans-serif; 
+	font-size: 18px; 
+	font-weight: bold; 
+	color: white;
+	background: #777777;
+	opacity: 0.5;
+	visibility: hidden;
+}
+
+.link {
+  stroke: #ccc;
+}
+
+.node text {
+  pointer-events: none;
+  font: 13px sans-serif;
+  fill: white;
+}
+
+</style>
+<body>
+<div class="text" style="position:absolute;color:gray;font-size:22px;">Taiwan Stock Broker Correlations</div>
+<input class="button" onclick="back()" type="button" value="Back" id=myButton1"></input>
+<div style="position:absolute;bottom:0">
+<div style="position:absolute;bottom:0;margin-bottom:35px;color:white"><input id="ra" type="radio" name="mode" value="grouped"> Grouped</div>
+<div style="position:absolute;bottom:0;margin-left:100px;margin-bottom:35px;color:white"><input id="ra" type="radio" name="mode" value="stacked" checked> Stacked</div>  
+<div id="p_value" style="width:150px;float:left;margin-left:10px;margin-bottom:5px;font-size:18px;color:white">P-Value <= 0.02</div>
+<input style="width:300px;margin-bottom:3px;" type="range" min="10" max="50" value="20"></div>
+<script>
+
+var width = $(window).width()-10,
+    height = $(window).height()-10,
+    mode = "common mode",
+    mode2 = "stacked";
+    range = 0.02;
+    
+var color = d3.scale.category20();
+
+var svg = d3.select("body").append("svg")
+    .attr("width", width)
+    .attr("height", height).call(d3.behavior.zoom().on("zoom", rescale));
+    
+var vis = svg
+    .append('svg:g');
+
+var force = d3.layout.force()
+    .gravity(.05)
+    .distance(function(d) { return 150*Math.sqrt(d.value*1000); })
+    .charge(-2000)
+    .size([width, height]);
+    
+var node,
+    link;
+    
+var inputValue = d3.select("input[type=range]"),
+    pValue = d3.selectAll("#p_value");
+    
+var infoWindow,
+    infoText,
+    infoLink;
+    
+    // if(function(d) {return d.value}!=0){
+//     force
+//     	.distance(function(d) { return (1/Math.sqrt(d.value)); })
+//     }
+
+var jsonData;
+
+function back(){
+	d3.selectAll(".node").remove();
+	d3.selectAll(".link").remove();
+	d3.select("input[type=button]").style("visibility", "hidden");
+	closeInfoWindow();
+	draw("common mode", null, jsonData.nodes, jsonData.links);
+}
+
+function closeInfoWindow(){
+	if(infoWindow != null){
+	infoWindow.remove(); infoText.remove(); infoLink.remove(); infoWindow = null;
+	}
+}
+
+d3.json("miserables.json", function(json) {
+
+  jsonData = json;
+  draw("common mode", null, jsonData.nodes, jsonData.links);
+});
+	
+  function draw(mode, selectedNode, newNodes, newLinks){
+	force.nodes(newNodes)
+	.links(newLinks)
+	.start();
+	
+	link = vis.selectAll(".link")
+	.data(newLinks)
+	.enter().append("line")
+	.attr("class", "link")
+	.style("stroke-width", 2);
+      
+	node = vis.selectAll(".node")
+	.data(newNodes)
+	.enter().append("g")
+	.attr("id", function(d) { return d.id; })
+	.attr("class", "node")
+	.call(force.drag);
+	
+	if(mode == "common mode"){
+		d3.select("input[type=button]").style("visibility", "hidden");
+		node.on("click", function(d,i) {mouseclick(this, i)});
+	}
+	else if(mode == "selected mode"){
+		d3.select("input[type=button]").style("visibility", "visible");
+		node.on("click", function(d,i) {
+		if(infoWindow==null){
+		infoWindow = svg.append("rect")
+		.attr("x",$(window).width()/2-200)
+		.attr("y",$(window).height()/2-300)
+		.attr("width",400)
+		.attr("height",600)
+		.style("fill", "rgb(50, 50, 50)")
+		.style("opacity", 0.9)
+		.on("click", closeInfoWindow); 
+		
+		infoText = svg.append("text")
+		.attr("x",$(window).width()/2)
+		.attr("y",$(window).height()/2-260)
+		.attr("text-anchor", "middle")
+		.style("fill", "white")
+		.attr("font-size", "20")
+		.attr("font-weight", "bold")
+		.text(newNodes[0].name);
+		for(i = 0; i < newLinks.length; i++){
+			infoTspan = infoText.append("tspan")
+			.attr("x",$(window).width()/2)
+			.attr("text-anchor", "middle")
+			.attr("font-size", "16")
+			.attr("font-weight", "normal")
+			.text(newLinks[i].target.name+"\t"+newLinks[i].value);
+			if(i==0)
+				infoTspan.attr("dy", "50");
+			else
+				infoTspan.attr("dy", "18");
+		}
+		infoLink = svg.append("text")
+			.attr("x",$(window).width()/2)
+			.attr("y",$(window).height()/2+260)
+			.attr("text-anchor", "middle")
+			.attr("font-size", "16")
+			.append("a")
+			.attr("text-align", "left")
+			.attr("fill", "gray")
+			.attr("text-decoration", "underline")
+			.text("Broker Information");
+			
+		if(newNodes[0].number == "0000")
+			infoLink.attr("xlink:href","http://www.twse.com.tw/ch/products/broker_service/broker_list.php");
+		else
+			infoLink.attr("xlink:href","http://www.twse.com.tw/ch/products/broker_service/broker_detail.php?STKNO="+newNodes[0].number);
+		}
+		});
+	}
+      
+	node.append("circle")
+	.style("fill", function(d) { return color(d.group); })
+	.attr("r", function(d) {
+		if(mode == "selected mode" && d.id == selectedNode.id) return 60; else return 30;})
+	.transition().attr("transform","scale("+function(d) {
+		if(mode == "selected mode" && d.id == selectedNode.id)return 5; else return 1;});
+
+	node.append("text")
+	.attr("text-anchor", "middle")
+	.text(function(d) { return d.name; });
+  
+	node.append("title")
+	.text(function(d) { return d.name; });
+	
+	link.append("title")
+	.text(function(d) { return d.value; });
+
+	force.on("tick", refresh);
+  }
+        
+  function mouseclick(obj, selected){	
+	console.log(obj);
+	console.log(obj.id);
+	//console.log(""+d.name+d.id);
+	d3.select("#"+obj.id).selectAll("circle").style("fill", "red");
+	//d3.select("#"+d.id).selectAll("text").attr("text-anchor","top");
+
+	var tempNodes = [],
+	//backNodes = [],
+	tempLinks = [];
+	//backLinks = [];
+	tempNodes.push(jsonData.nodes[selected]);
+	//backNodes.push(jsonData.nodes[selected]);
+	for(i = 0 ; i < jsonData.links.length; i++){
+		if(jsonData.links[i].source.id == obj.id){
+			for(j = 0; j < jsonData.nodes.length; j++){
+				if(jsonData.nodes[j].id == jsonData.links[i].target.id){
+				tempNodes.push(jsonData.nodes[j]);
+				break;
+				}
+			}
+				tempLinks.push(jsonData.links[i]);
+		}
+	}
+	/*for(i = 0 ; i < jsonData.links.length; i++){
+		if(jsonData.links[i].target.id == obj.id){
+			for(j = 0; j < jsonData.nodes.length; j++){
+				if(jsonData.nodes[j].id == jsonData.links[i].source.id){
+				backNodes.push(jsonData.nodes[j]);
+				break;
+				}
+			}
+				backLinks.push(jsonData.links[i]);
+		}
+	}*/
+	d3.selectAll(".node").remove();
+	d3.selectAll(".link").remove();
+	
+	draw("selected mode", obj, tempNodes, tempLinks);
+ 	}
+ 
+  inputValue.on("change", function() {
+  	if(Math.abs(this.value - 1000*range) >= 1){
+	pValue.text("P-Value <= "+ this.value/1000 +" ");
+  	range = this.value/1000;
+ 	force.on("tick", refresh);
+ 	}
+ 	});
+  
+   inputValue.on("mouseup", function() {force.start();});
+   
+   d3.selectAll("#ra").on("change", function change() {
+	mode2 = this.value;
+	force.on("tick", refresh);
+	force.start();
+	});
+  
+  function refresh(){
+  	link.attr("x1", function(d) {
+		if(mode2 == "stacked"){
+		if(d.value<=range) return d.source.x; else return null;}
+		else{
+		if(Math.abs(d.value-range)<0.001) return d.source.x; else return null;}})
+        .attr("y1", function(d) {
+		if(mode2 == "stacked"){
+		if(d.value<=range) return d.source.y; else return null;}
+		else{
+		if(Math.abs(d.value-range)<0.001) return d.source.y; else return null;}})
+        .attr("x2", function(d) {
+		if(mode2 == "stacked"){
+		if(d.value<=range) return d.target.x; else return null;}
+		else{
+		if(Math.abs(d.value-range)<0.001) return d.target.x; else return null;}})
+        .attr("y2", function(d) {
+		if(mode2 == "stacked"){
+		if(d.value<=range) return d.target.y; else return null;}
+		else{
+		if(Math.abs(d.value-range)<0.001) return d.target.y; else return null;}});
+
+    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+    //force.start();
+  }
+
+function rescale() {
+	trans=d3.event.translate;
+	scale=d3.event.scale;
+
+	vis.attr("transform", "translate(" + trans + ")" + " scale(" + scale + ")");
+}
+</script>

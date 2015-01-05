@@ -1,0 +1,147 @@
+body {
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+}
+
+#container {
+    display: inline-block;
+    background-color:rgba(240, 240, 240, 0.8);
+    height:240px;
+    width: 100%;
+    vertical-align:bottom;
+    position:absolute;
+    bottom:0;
+    left:0;
+    right:0;
+}
+
+#leftColumn, #rightColumn {
+  background-color: transparent;
+  min-height: 230px;
+  margin: 4px;
+}
+#leftColumn {
+  display: inline-block;
+  width: 49%;
+  height: auto;
+  position: fixed;
+}
+#rightColumn {
+  width: 49%;
+  height: 230px;
+  float: right;
+  overflow: auto;
+}
+
+#leftSmallColumn, #rightSmallColumn {
+  background-color: transparent;
+  min-height: 140px;
+  margin: 4px;
+}
+#leftSmallColumn {
+  background-color: transparent;
+  width: 16%;
+  height: auto;
+  position: fixed;
+}
+#rightSmallColumn {
+  border: solid 1px #aaaaaa;
+  background-color: transparent;
+  width: 64%;
+  height: auto;
+  float: right;
+}
+
+Font {
+  font:100% "Trebuchet MS", sans-serif;
+  color:#666666;
+}
+
+#title {
+  font-size:24px;
+  font-weight:bold;
+}
+
+#startText, #endText, #matchLnameText {
+  font-size:14px;
+  margin-left:8px;
+}
+
+#loadingText {
+  font-size:14px;
+  margin-left:40px;
+}
+
+#mergeButton {
+  height: 300px;
+  width: 200px;
+  font-size:18px;
+  font:100% "Trebuchet MS", sans-serif;
+  color:#FF0000;
+  margin-left:8px;
+}
+
+#loadingDiv {
+  display: block;
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  margin-left:-180px;
+  margin-top:30px;
+  display:none;
+}
+
+#loadingImage {
+  width: 200px;
+}
+
+#overallColumn, #nameSimilarityColumn, #collaborationOverlapColumn {
+  width: auto;
+}
+
+#nameSimilarityCheckbox, #collaborationOverlapCheckbox {
+  margin-left: auto;
+  margin-right: 10px;
+}
+
+#overallText, #nameSimilarityText, #collaborationOverlapText {
+  font-size:14px;
+  margin-right: 10px;
+}
+
+#overallScrollbar, #nameSimilarityScrollbar, #collaborationOverlapScrollbar {
+  width: 180px;
+  margin-right: 40px;
+}
+
+table, td, th
+{
+border:5px solid transparent;
+}
+
+th, td {
+    width: 160px;
+}
+
+td {
+  text-align: right;
+}
+
+img {
+  display:block;
+  margin: auto;
+}
+
+.node {
+  stroke: #fff;
+  stroke-width: 0.5px;
+}
+
+.link {
+  stroke: #999;
+  stroke-opacity: .6;
+}

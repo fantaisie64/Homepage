@@ -1,0 +1,28 @@
+Since the majority of P-values are close to 0 and the amount of P-values also increase gradually to the direction of 0 (see the distribution of true P-value in <a href="distribution.html">Value Distribution</a> page), we adopt the absolute values of 2 based logarithm P-values (|log2(P-value)|) in Figure 6 for better (less tilted) distribution. </p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp; In this visualization tool, we also apply the grouping by: local/foreign brokers, start up dates. 
+Furthermore, in addition to original P-values, the P-values are further calculated in 3-level, 5-level (P-values of 0.1, 0.05, 0.01, 0.005, and 0.001), 2-based logarithm, and 10-based logarithm. 
+
+<td>
+       <p><div style="width=500px; height:320px;"><a href="all/all-cap-p_l2-br-1-v.png"><img align="top" src="all/all-cap-p_l2-br-1-v.png" hspace="10" vspace="10" width="500" style="z-index:1; position:absolute;"></a>
+       <a href="all/all-cap-p_l2-br-1-c.png"><img align="top" src="all/all-cap-p_l2-br-1-c.png" hspace="450" vspace="240" width="50" style="z-index:2; position:absolute;"></a></div></p>
+       <p><h3>Figure 6. Change to 2 based logarithm level P-value</h3></p>
+       <p><h5>Grouped by capital, absolute log 2 P-value, bundling strength 0.95, BR colors</h5></p>
+       </td>
+
+
+
+		Furthermore, we adopt the absolute values of 2 based logarithm P-values (|log2(P-value)|) in Figure 2 for better (less tilted) distribution with gradient milder Blue to Red color, 
+		Since the majority of P-values are close to 0 and the amount of P-values also increase gradually to the direction of 0 (see the distribution of true P-value in <a href="distribution.html">Value Distribution</a> page).</p>
+
+
+<td>
+       <div style="padding-left:0px;">
+       <p><div style="width=500px; height:320px;"><a href="individual/individual-cap-p_l2-br-1-v.png"><img align="top" src="individual/individual-cap-p_l2-br-1-v.png" hspace="10" vspace="10" width="500" style="z-index:1; position:absolute;"></a>
+       <a href="all/all-cap-p_l2-br-1-c.png"><img align="top" src="all/all-cap-p_l2-br-1-c.png" hspace="450" vspace="240" width="50" style="z-index:2; position:absolute;"></a></div></p>
+       <p><h3 style="padding-left:0px;">Figure 2. Change to log 2 level P-value with Milder Blue to Red</h3></p>
+       <p><h5 style="padding-left:0px;">Grouped by capital, absolute log 2 P-value, BR colors</h5></p>
+       </div>
+       </td>
+
+
+	<p style="text-align:center"><a href="distribution.html" target="right">Value Distribution</a></p>
